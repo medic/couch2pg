@@ -1,0 +1,26 @@
+{
+  "name": "couch2pg",
+  "version": "0.0.0-alpha.0.1.0",
+  "main": "index.js",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/medic/medic-webapp.git"
+  },
+  "dependencies": {
+    "pg": "4.4.0",
+    "pg-format": "^0.1.4",
+    "pg-promise": "0.9.8",
+    "rsvp": "3.0.18"
+  },
+  "devDependencies": {
+    "chai": "^3.0.0",
+    "chai-as-promised": "^5.1.0",
+    "grunt": "^0.4.5",
+    "grunt-contrib-jshint": "^0.11.2",
+    "grunt-mocha-test": "^0.12.7",
+    "mocha": "^2.2.5",
+    "nock": "^2.7.0",
+    "sinon": "^1.15.4"
+  }
+}
