@@ -34,4 +34,9 @@ module.exports = function(grunt) {
   ]);
 
   grunt.registerTask('default', 'tests');
+
+  grunt.registerTask('ci', 'TravisCI tests', [
+    'jshint',
+    'mochaTest:unit'
+  ]);
 };

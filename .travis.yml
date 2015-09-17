@@ -1,0 +1,42 @@
+nguage: node_js
+node_js:
+   - "0.12"
+   - "0.10"
+
+env:
+  global:
+    - POSTGRESQL_URL="postgres://medictest:password@localhost:5432/medicdata"
+    - POSTGRESQL_TABLE="couchdata"
+    - POSTGRESQL_COLUMN="json"
+    - COUCHDB_URL="http://localhost:5984/medicdata"
+    - PRELOAD_APP_DATA="diy"
+    - PRELOAD_APP_MARKET="release"
+
+sudo: required
+
+services:
+   - couchdb
+
+addons:
+   - postgresql: "9.4"
+
+before_script:
+   - psql -c "CREATE ROLE medictest WITH LOGIN PASSWORD 'password';" -U postgres
+   - psql -c "CREATE DATABASE medicdata WITH OWNER medictest;" -U postgres
+   - npm install gardener -g
+   - npm install garden-core -g
+   - npm install
+
+script:
+   - echo "cd medic-data && make load" # not ready yet
+   - node `which grunt` ci
+
+notifications:
+  webhooks:
+    urls:
+      - https://medic.slack.com/services/hooks/travis?token=xcYT8yusfEdSwLskhBxK4Vwj
+    on_success: change
+    on_failure: always
+  email:
+    recipients:
+      - dev@medicmobile.org
