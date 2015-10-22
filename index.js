@@ -1,5 +1,5 @@
 // move data from couch to postgres.
-var httplib = require('http');
+var httplib = require('https');
 var pglib = require('pg-promise');
 
 var Promise = require('./common').Promise;
