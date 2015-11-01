@@ -14,7 +14,16 @@ are required.
 * `POSTGRESQL_COLUMN`: name of the `jsonb` column in `POSTGRESQL_TABLE` for
   storing CouchDB data.
 * `COUCHDB_URL`: a full path URL to `_all_doc`, including `user:pass@` and `include_docs=true`.
-  * e.g. `http://user:pass@localhost/medic/_all_docs?include_docs=true`
+  * e.g. `https://user:pass@localhost/medic/_all_docs?include_docs=true`
+
+## Example usage
+
+Run `node`, then:
+
+```
+var couch2pg = require('couch2pg')
+couch2pg().then(function () {console.log('done!');}).catch(function (e) {console.log(e);});
+```
 
 ## Current Process
 
