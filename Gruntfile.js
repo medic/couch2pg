@@ -35,8 +35,10 @@ module.exports = function(grunt) {
 
   grunt.registerTask('default', 'tests');
 
-  grunt.registerTask('ci', 'TravisCI tests', [
+  grunt.registerTask('noint', 'skip integration tests', [
     'jshint',
     'mochaTest:unit'
   ]);
+
+  grunt.registerTask('ci', 'default');
 };

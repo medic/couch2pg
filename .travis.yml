@@ -28,7 +28,7 @@ before_script:
    - npm install
 
 script:
-   - echo "cd medic-data && make load" # not ready yet
+   - cd medic-data && make load
    - node `which grunt` ci
 
 notifications:
