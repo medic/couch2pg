@@ -1,4 +1,4 @@
-nguage: node_js
+language: node_js
 node_js:
    - "0.12"
    - "0.10"
@@ -24,6 +24,7 @@ addons:
 before_script:
    - psql -c "CREATE ROLE medictest WITH LOGIN PASSWORD 'password';" -U postgres
    - psql -c "CREATE DATABASE medicdata WITH OWNER medictest;" -U postgres
+   - npm link ./medic-data
    - npm install gardener -g
    - npm install garden-core -g
    - npm install

@@ -22,6 +22,6 @@
     "mocha": "^2.2.5",
     "nock": "^2.7.0",
     "sinon": "^1.15.4",
-    "demos-generic-anc": "file:./medic-data"
+    "demos-generic-anc": "0.0.1"
   }
 }
