@@ -8,7 +8,7 @@ env:
     - POSTGRESQL_URL="postgres://medictest:password@localhost:5432/medicdata"
     - POSTGRESQL_TABLE="couchdata"
     - POSTGRESQL_COLUMN="json"
-    - COUCHDB_URL="https://localhost:5984/medicdata"
+    - COUCHDB_URL="http://localhost:5984/medicdata"
     - DEMOS_COUCHDB="http://localhost:5984"
     - PRELOAD_APP_DATA="diy"
     - PRELOAD_APP_MARKET="release"
