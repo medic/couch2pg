@@ -31,7 +31,7 @@ before_script:
 
 script:
    - make -C ./medic-data/
-   - node `which grunt` ci
+   - grunt ci
 
 comments:
   notifications:
