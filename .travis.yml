@@ -30,7 +30,7 @@ before_script:
    - npm install
 
 script:
-   - cd medic-data && make load
+   - make -C ./medic-data/
    - node `which grunt` ci
 
 comments:
