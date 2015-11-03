@@ -1,6 +1,18 @@
 // move data from couch to postgres.
-var httplib = require('https');
 var pglib = require('pg-promise');
+
+// import the correct lib for web content:
+// travis couchdb does not support HTTPS, but prod systems require HTTPS
+var httplib = null;
+if (process.env.COUCHDB_URL.slice(0,6) === 'https:') {
+  httplib = require('https');
+}
+if (process.env.COUCHDB_URL.slice(0,5) === 'http:') {
+  httplib = require('http');
+}
+if (httplib === null) {
+  throw new Error('Invalid URL scheme: ' + process.env.COUCHDB_URL);
+}
 
 var Promise = require('./common').Promise;
 
