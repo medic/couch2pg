@@ -23,7 +23,7 @@ before_script:
    - psql -c "CREATE DATABASE medicdata WITH OWNER medictest;" -U postgres
 
 script:
-   - replace_couch.sh
+   - ./replace_couch.sh
    - grunt ci
 
 comments:
