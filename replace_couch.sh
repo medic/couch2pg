@@ -25,3 +25,7 @@ while [ ! `curl -f ${COUCHURL}` ]; do
   echo "Waiting for system to come up..."
   sleep 2
 done
+
+# Is the medic database there?
+curl -X GET http://127.0.0.1:5984/medic/_all_docs > docs
+wc -l docs
