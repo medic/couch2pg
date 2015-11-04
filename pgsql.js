@@ -9,7 +9,7 @@ function getFromEnv() {
 
 exports.createTable = function() {
   var c = getFromEnv();
-  return scrub('CREATE TABLE %I (%I) jsonb;', c.jsonTable, c.jsonCol);
+  return scrub('CREATE TABLE %I (%I jsonb);', c.jsonTable, c.jsonCol);
 };
 
 exports.addColumnToTable = function() {
