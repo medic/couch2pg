@@ -9,9 +9,6 @@ env:
     - POSTGRESQL_TABLE="couchdata"
     - POSTGRESQL_COLUMN="json"
     - COUCHDB_URL="http://localhost:5984"
-    - DEMOS_COUCHDB="http://localhost:5984"
-    - PRELOAD_APP_DATA="diy"
-    - PRELOAD_APP_MARKET="release"
 
 sudo: required
 
@@ -24,13 +21,9 @@ addons:
 before_script:
    - psql -c "CREATE ROLE medictest WITH LOGIN PASSWORD 'password';" -U postgres
    - psql -c "CREATE DATABASE medicdata WITH OWNER medictest;" -U postgres
-   - npm link ./medic-data
-   - npm install gardener -g
-   - npm install garden-core -g
-   - npm install
 
 script:
-   - make -C ./medic-data/ install settings gardener load
+   - replace_couch.sh
    - grunt ci
 
 comments:
