@@ -62,7 +62,7 @@ describe('Integration', function() {
               if (result[0] === undefined) {
                 throw Error('cannot find result for query: ' + thisQuery);
               }
-              var obj = result[0].data;
+              var obj = result[0][pgcol];
               return expect(obj).deep.equals(row.doc);
             }, handleError);
         });
