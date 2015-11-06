@@ -22,9 +22,10 @@ before_script:
    - psql -c "CREATE DATABASE medicdata WITH OWNER postgres;" -U postgres
    - which psql
    - psql --version
+   - psql -d ${POSTGRESQL_URL} -c "SELECT version();"
    - psql -d ${POSTGRESQL_URL} -c "\conninfo"
-   - psql -d ${POSTGRESQL_URL} -c "CREATE TABLE couchdata (jsondata JSONB);"
    - psql -d ${POSTGRESQL_URL} -c "SELECT * FROM pg_type WHERE typname LIKE '%json%';"
+   - psql -d ${POSTGRESQL_URL} -c "CREATE TABLE couchdata (jsondata JSONB);"
 
 script:
    - ./replace_couch.sh
