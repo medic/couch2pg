@@ -20,6 +20,9 @@ addons:
 
 before_script:
    - psql -c "CREATE DATABASE medicdata WITH OWNER postgres;" -U postgres
+   - echo ${POSTGRESQL_URL}
+   - psql -d ${POSTGRESQL_URL} -c "\dt"
+   - psql -d ${POSTGRESQL_URL} -c "CREATE TABLE couchdata (jsondata JSONB);"
 
 script:
    - ./replace_couch.sh
