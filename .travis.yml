@@ -20,7 +20,6 @@ addons:
 
 before_script:
    - psql -c "CREATE DATABASE medicdata WITH OWNER postgres;" -U postgres
-   - psql -d ${POSTGRESQL_URL} -c "SELECT version();"
 
 script:
    - ./replace_couch.sh
