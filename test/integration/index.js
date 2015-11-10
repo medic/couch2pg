@@ -15,6 +15,10 @@ var pgcol = process.env.POSTGRESQL_COLUMN;
 var pgtab = process.env.POSTGRESQL_TABLE;
 var queryStr = scrub('SELECT %I FROM %I WHERE %I->>\'_id\' = %%L AND %I->>\'_rev\' = %%L;', pgcol, pgtab, pgcol, pgcol);
 
+// postgres connection
+var pgp;
+var db;
+
 describe('Integration', function() {
 
   before(function (done) {
@@ -23,13 +27,12 @@ describe('Integration', function() {
     }, function (err) {
       done(err);
     });
+    // connect to postgres
+    pgp = pgplib({ 'promiseLib': Promise });
+    db = pgp(process.env.POSTGRESQL_URL);
   });
 
-  it('moves all documents to postgres', function(done) {
-    // connect to postgres
-    var pgp = pgplib({ 'promiseLib': Promise });
-    var db = pgp(process.env.POSTGRESQL_URL);
-
+  it('moves all non-design documents to postgres', function(done) {
     // fetch all documents out of couch
     var buffer = '';
     var incoming = httplib.request(process.env.COUCHDB_URL);
@@ -84,6 +87,16 @@ describe('Integration', function() {
       });
     });
     incoming.end();
+  });
+
+  it('puts a doc with app_settings into postgres', function() {
+    // ideally: fetch app settings from the webapp and compare.
+    // however app settings might change, something to do with defaults.
+    // also good: grab a subset, like schedules and compare those.
+    // there's no obvious API for that yet without grabbing the whole doc.
+    // for now, just make sure the database has a doc with app_settings in it.
+    var queryAppSettings = scrub('SELECT %I->\'app_settings\'->\'schedules\'->0->\'messages\' FROM %I WHERE %I->\'app_settings\'->\'schedules\'->0 ? \'messages\';', pgcol, pgtab, pgcol);
+    return expect(db.one(queryAppSettings)).to.eventually.be.fulfilled;
   });
 
 });

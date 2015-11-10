@@ -25,13 +25,12 @@ script:
    - ./replace_couch.sh
    - grunt ci
 
-comments:
-  notifications:
-    webhooks:
-      urls:
-        - https://medic.slack.com/services/hooks/travis?token=xcYT8yusfEdSwLskhBxK4Vwj
-      on_success: change
-      on_failure: always
-    email:
-      recipients:
-        - dev@medicmobile.org
+notifications:
+  webhooks:
+    urls:
+      - https://medic.slack.com/services/hooks/travis?token=xcYT8yusfEdSwLskhBxK4Vwj
+    on_success: change
+    on_failure: always
+  email:
+    recipients:
+      - dev@medicmobile.org
