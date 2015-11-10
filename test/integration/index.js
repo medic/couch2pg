@@ -54,6 +54,8 @@ describe('Integration', function() {
           var uuid = row.id;
           var rev = row.value.rev;
           var thisQuery = scrub(queryStr, uuid, rev);
+          // skip design docs
+          if (uuid.slice(0,7) === '_design') { return; }
           // iterative step: order queries with then
           queries = queries.then(function () {
             return sco.query(thisQuery);
