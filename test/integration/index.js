@@ -1,7 +1,6 @@
-var httplib = require('http');
+var httplib = require('request');
 var pgplib = require('pg-promise');
 var scrub = require('pg-format');
-var request = require('request');
 
 var all = require('rsvp').all;
 
@@ -29,7 +28,7 @@ var couchdb_url = process.env.COUCHDB_URL;
 var n_docs;
 var fetch_rows = new Promise(function (resolve, reject) {
   // perform a request for no keys to get back only the db doc count
-  request.post({
+  httplib.post({
     url: couchdb_url,
     form: '{"keys": []}'
   }, function (err, httpResponse, body) {
@@ -70,14 +69,11 @@ describe('Integration', function() {
 
   it('moves all non-design documents to postgres', function(done) {
     // fetch all documents out of couch
-    var buffer = '';
-    var incoming = httplib.request(process.env.COUCHDB_URL);
-    incoming.on('response', function (res) {
-      res.setEncoding('utf8');
-      res.on('data', function(chunk) {
-        buffer = buffer + new Buffer(chunk);
-      });
-      res.on('end', function() {
+    httplib.get({ url: couchdb_url }, function (err, httpResponse, buffer) {
+        if (err) {
+          return done(err);
+        }
+
         // document download completed
         var data = JSON.parse(buffer);
         // setup a single connection for a series of thenable queries
@@ -110,19 +106,15 @@ describe('Integration', function() {
         // mark completion when the last promise has returned
         queries.then(function () {
             done();
-          })
-          .catch(function (err) {
-            done(err);
-          })
-          .finally(function () {
-            if (sco) {
-              // close the database connection
-              sco.done();
-            }
-          });
-      });
+        }).catch(function (err) {
+          done(err);
+        }).finally(function () {
+          if (sco) {
+            // close the database connection
+            sco.done();
+          }
+        });
     });
-    incoming.end();
   });
 
   it('puts a doc with app_settings into postgres', function() {
