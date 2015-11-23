@@ -103,9 +103,7 @@ describe('Integration', function() {
       done(err);
     }));
 
-    todo.push(couch2pg().then(function () {
-      done();
-    }, function (err) {
+    todo.push(couch2pg().catch(function (err) {
       done(err);
     }));
 
