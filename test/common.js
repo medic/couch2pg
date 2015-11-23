@@ -7,3 +7,4 @@ chai.use(chaiAsPromised);
 exports.expect = chai.expect;
 exports.Promise = require('../common').Promise;
 exports.handleError = require('../common').handleError;
+exports.handleReject = require('../common').handleReject;

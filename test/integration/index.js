@@ -1,12 +1,15 @@
 var httplib = require('http');
 var pgplib = require('pg-promise');
 var scrub = require('pg-format');
+var request = require('request');
+
+var all = require('rsvp').all;
 
 var common = require('../common');
 var expect = common.expect;
 var Promise = common.Promise;
-
-var handleError = require('../common').handleError;
+var handleError = common.handleError;
+var handleReject = common.handleReject;
 
 var couch2pg = require('../../index');
 
@@ -19,17 +22,50 @@ var queryStr = scrub('SELECT %I FROM %I WHERE %I->>\'_id\' = %%L AND %I->>\'_rev
 var pgp;
 var db;
 
-describe('Integration', function() {
+// backup the env URL
+var couchdb_url = process.env.COUCHDB_URL;
 
+// determine how many rows are in the database
+var n_docs;
+var fetch_rows = new Promise(function (resolve, reject) {
+  // perform a request for no keys to get back only the db doc count
+  request.post({
+    url: couchdb_url,
+    form: '{"keys": []}'
+  }, function (err, httpResponse, body) {
+    if (err) {
+      return handleReject(reject)(err);
+    }
+    return resolve(parseInt(JSON.parse(body).total_rows));
+  });
+});
+
+describe('Integration', function() {
   before(function (done) {
-    couch2pg().then(function () {
+    var todo = [];
+
+    todo.push(fetch_rows.then(function (total_rows) {
+      n_docs = total_rows;
+    }, function (err) {
+      done(err);
+    }));
+
+    todo.push(couch2pg().then(function () {
       done();
     }, function (err) {
       done(err);
-    });
+    }));
+
     // connect to postgres
     pgp = pgplib({ 'promiseLib': Promise });
     db = pgp(process.env.POSTGRESQL_URL);
+
+    all(todo).then(function () {done();});
+  });
+
+  it('fetches non-zero doc count', function () {
+    // make sure there are documents to be fetched.
+    return expect(n_docs).to.be.gt(0);
   });
 
   it('moves all non-design documents to postgres', function(done) {
