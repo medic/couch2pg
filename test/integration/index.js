@@ -1,8 +1,7 @@
 var httplib = require('request');
 var pgplib = require('pg-promise');
 var scrub = require('pg-format');
-
-var all = require('rsvp').all;
+var url = require('url');
 
 var common = require('../common');
 var expect = common.expect;
@@ -20,18 +19,18 @@ var appQueryStr = scrub('SELECT %I->\'app_settings\'->\'schedules\'->0->\'messag
 var countQueryStr = scrub('SELECT COUNT(%I) FROM %I;', pgcol, pgtab);
 
 // postgres connection
-var pgp;
-var db;
+var pgp = pgplib({ 'promiseLib': Promise });
+var db = pgp(process.env.POSTGRESQL_URL);
 
 // backup the env URL
-var couchdb_url = process.env.COUCHDB_URL;
+var couchdb_url_bu = process.env.COUCHDB_URL;
 
 // determine how many rows are in the database
 var n_docs;
 var fetch_rows = new Promise(function (resolve, reject) {
   // perform a request for no keys to get back only the db doc count
   httplib.post({
-    url: couchdb_url,
+    url: process.env.COUCHDB_URL,
     form: '{"keys": []}'
   }, function (err, httpResponse, body) {
     if (err) {
@@ -93,37 +92,101 @@ function couch_in_postgres(done) {
   });
 }
 
-describe('Integration', function() {
+function run_pre_tasks(done, f_buildurl, f_restoreurl) {
+  fetch_rows.then(function (total_rows) {
+    n_docs = total_rows;
+  }, function (err) {
+    done(err);
+  }).then(f_buildurl).then(couch2pg).catch(function (err) {
+    done(err);
+  }).then(f_restoreurl);
+}
+
+describe('base import of couchdb integration', function() {
   before(function (done) {
-    var todo = [];
 
-    todo.push(fetch_rows.then(function (total_rows) {
-      n_docs = total_rows;
-    }, function (err) {
-      done(err);
-    }));
-
-    todo.push(couch2pg().catch(function (err) {
-      done(err);
-    }));
-
-    // connect to postgres
-    pgp = pgplib({ 'promiseLib': Promise });
-    db = pgp(process.env.POSTGRESQL_URL);
-
-    all(todo).then(function () {done();});
+    run_pre_tasks(done, function () {
+      // restore couchdb URL backup
+      var url_pieces = url.parse(couchdb_url_bu);
+      // set the query to limit to the first half of the docs
+      if ((url_pieces.search === null) || (url_pieces.search === undefined)) {
+        url_pieces.search = '?';
+      } else {
+        url_pieces.search = url_pieces.search + '&';
+      }
+      url_pieces.search = url_pieces.search + 'limit=' + Math.floor(n_docs/2);
+      // configure the new URL for couch2pg and this test
+      process.env.COUCHDB_URL = url.format(url_pieces);
+    }, function () {
+      // leave env URL unchanged for this phase of testing
+      done();
+    });
   });
 
-  it('imports as many rows as there are docs', function (done) {
+  after(function () {
+    // restore couchdb URL to the env
+    process.env.COUCHDB_URL = url.format(couchdb_url_bu);
+  });
+
+  it('imports as many rows as there are expected docs', function (done) {
     // compare couchdb doc count (n_docs) to postgres rows.
     db.one(countQueryStr).then(function (row) {
       var docs = parseInt(row.count);
-      expect(docs).to.equal(n_docs);
-      done();
+      expect(docs).to.equal(Math.floor(n_docs/2));
     }, function (err) {
+      done(err);
+    }).then(done, function (err) {
       done(err);
     });
   });
+
+  it('moves expected non-design documents to postgres', function(done) {
+    couch_in_postgres(done);
+  });
+
+});
+
+describe('iterative step of couchdb integration', function() {
+  before(function (done) {
+    run_pre_tasks(done, function () {
+      // restore couchdb URL backup
+      var url_pieces = url.parse(couchdb_url_bu);
+      // set the query to limit to the first half of the docs
+      if ((url_pieces.search === null) || (url_pieces.search === undefined)) {
+        url_pieces.search = '?';
+      } else {
+        url_pieces.search = url_pieces.search + '&';
+      }
+      url_pieces.search = url_pieces.search + 'skip=' + Math.floor(n_docs/2);
+      // configure the new URL for couch2pg and this test
+      process.env.COUCHDB_URL = url.format(url_pieces);
+    }, function () {
+      // restore URL to grab full couchdb to test against
+      process.env.COUCHDB_URL = url.format(couchdb_url_bu);
+      done();
+    });
+  });
+
+  it('imports as many rows as there are total docs', function (done) {
+    // compare couchdb doc count (n_docs) to postgres rows.
+    db.one(countQueryStr).then(function (row) {
+      var docs = parseInt(row.count);
+      //expect(docs).to.equal(Math.floor(n_docs));
+      expect(docs).to.equal(n_docs);
+    }, function (err) {
+      done(err);
+    }).then(done, function (err) {
+      done(err);
+    });
+  });
+
+  it('moves all non-design documents to postgres', function(done) {
+    couch_in_postgres(done);
+  });
+
+});
+
+describe('full import', function() {
 
   it('puts a doc with app_settings into postgres', function() {
     // ideally: fetch app settings from the webapp and compare.
@@ -132,10 +195,6 @@ describe('Integration', function() {
     // there's no obvious API for that yet without grabbing the whole doc.
     // for now, just make sure the database has a doc with app_settings in it.
     return expect(db.one(appQueryStr)).to.eventually.be.fulfilled;
-  });
-
-  it('moves all non-design documents to postgres', function(done) {
-    couch_in_postgres(done);
   });
 
 });
