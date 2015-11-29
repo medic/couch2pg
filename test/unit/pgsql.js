@@ -91,19 +91,6 @@ describe('pgsql', function() {
 
    }); // forEach
 
-   // separated because no column comparisons
-   describe('clearTableContents()', function() {
-
-     it('returns env table', function() {
-       return testWith('clearTableContents', 'goodTable');
-     });
-
-     it('escapes bad table', function() {
-       return testWith('clearTableContents', 'badTable');
-     });
-
-   });
-
    // separated because takes data parameter
    describe('insertIntoColumn()', function() {
 

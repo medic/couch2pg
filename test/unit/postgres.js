@@ -7,7 +7,6 @@ var pgsql = {
   createTable: function() { return '9df62459'; },
   addColumnToTable: function() { return '5de44864'; },
   checkTableSyntax: function() { return 'bc1e0018'; },
-  clearTableContents: function() { return '1ddb972e'; }
 };
 
 function acceptPromise(resolve) {
@@ -52,7 +51,7 @@ describe('Postgres endpoint', function() {
 
     before(function(done) {
       promise = lookForQuery({},
-        [pgsql.checkTableSyntax(), pgsql.clearTableContents()],
+        [pgsql.checkTableSyntax()],
         passedToDB, done);
     });
 

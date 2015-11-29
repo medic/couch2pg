@@ -22,11 +22,6 @@ exports.checkTableSyntax = function() {
   return scrub('SELECT count(%I) FROM %I;', c.jsonCol, c.jsonTable);
 };
 
-exports.clearTableContents = function() {
-  var c = getFromEnv();
-  return scrub('DELETE FROM %I;', c.jsonTable);
-};
-
 exports.insertIntoColumn = function(data) {
   var c = getFromEnv();
   return scrub('INSERT INTO %I (%I) VALUES (%L::jsonb);', c.jsonTable, c.jsonCol, data.toString());
