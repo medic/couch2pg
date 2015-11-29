@@ -59,9 +59,6 @@ describe('Postgres endpoint', function() {
     it('should check the table syntax', function() {
       return expect(passedToDB).to.include(pgsql.checkTableSyntax());
     });
-    it('should clear the table contents', function() {
-      return expect(passedToDB).to.include(pgsql.clearTableContents());
-    });
     it('should not error', function() {
       return expect(promise).to.be.fulfilled;
     });

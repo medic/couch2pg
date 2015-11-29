@@ -6,9 +6,6 @@ exports.initializeDatabase = function(pgsql, db) {
     // push the error (or its string conversion if available)
     errs.push(error && error.toString && error.toString());
   };
-  var clearTable = function() {
-    return db.query(pgsql.clearTableContents());
-  };
   var cannotCheckSyntax = function(s_err) {
     // assume the table is missing and try to create it.
     errToStr(s_err);
@@ -29,5 +26,5 @@ exports.initializeDatabase = function(pgsql, db) {
   };
 
   return db.query(pgsql.checkTableSyntax())
-           .then(clearTable, cannotCheckSyntax);
+           .catch(cannotCheckSyntax);
 };

@@ -32,6 +32,7 @@ exports.insertIntoColumn = function(data) {
   return scrub('INSERT INTO %I (%I) VALUES (%L::jsonb);', c.jsonTable, c.jsonCol, data.toString());
 };
 
-exports.fetchEntries = function() {
-  return;
+exports.fetchEntries = function () {
+  var c = getFromEnv();
+  return scrub('SELECT %I->\'_id\' AS _id, %I->\'_rev\' AS _rev FROM %I', c.jsonCol, c.jsonCol, c.jsonTable);
 };

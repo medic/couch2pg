@@ -12,11 +12,25 @@ exports.extractFromCouchDump = function(dataString) {
   });
 };
 
-
-//exports.skipExistingInPG = function(db, pgsql, docList) {
-exports.skipExistingInPG = function() {
-  return new Promise(function (resolve) {
-    return resolve();
+exports.skipExistingInPG = function(db, pgsql, docsInCouch) {
+  return db.query(pgsql.fetchEntries()).then(function (docsInPg) {
+    // compile docsInPg to a simple hash lookup
+    // a single O(n) traversal leading to O(1) checks instead of multiple
+    // O(n) traversals later.
+    var docsInPgHash = {};
+    docsInPg.forEach(function (pgdoc) {
+      // string concatenation of _id and _rev should be unique
+      docsInPgHash[pgdoc._id + pgdoc._rev] = true;
+    });
+    return docsInCouch.filter(function (cddoc) {
+      if (docsInPgHash[cddoc._id + cddoc._rev]) {
+        // doc is already in postgres. filter it out.
+        return false;
+      } else {
+        // doc is not in postgres. keep it.
+        return true;
+      }
+    });
   });
 };
 
