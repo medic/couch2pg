@@ -7,6 +7,9 @@ var couchiter = require('../../couchiter');
 var pgsql = {
   insertIntoColumn: function(x) {
     return '6bc4365c-b874-45' + x + '33-9daf-4554bed1019a';
+  },
+  fetchEntries: function () {
+    return 'f097aa28-ba4b-46dd-983e-98971358618a';
   }
 };
 
@@ -59,6 +62,8 @@ var topLevelObjectFixture = JSON.stringify({
         'rev':'1-196dbfdfd33333b3f363f3f3c33df3c3'
       },
       'doc': {
+        '_id': '0abf333c3fbeffaf33bae3c3d6333333',
+        '_rev':'1-196dbfdfd33333b3f363f3f3c33df3c3',
         'meta': {
           'code': 'P',
           'label': {
@@ -114,27 +119,31 @@ var topLevelObjectFixture = JSON.stringify({
       'value': {
         'rev':'1-196dbf7fd8077774f767f7f9c7377770'
       },
-      'doc': [
-        {
-          'message': 'P 6 Aurelia Acord',
-          'from': '+2856368560',
-          'sent_timestamp': '105 days ago at 15:51',
-          'meta': {
-            'type': 'registration',
-            'invalid': false,
-            'description': 'Valid LMP Registration'
-          }
-        },
-        {
-          'message': 'V {{patient_id}}',
-          'from': '+2856368560',
-          'sent_timestamp': '14 days ago at 09:57',
-          'meta': {
-            'type': 'visit',
-            'description': 'Visit 1'
-          }
-        },
-      ]
+      'doc': {
+        '_id': '0abf777d7fbeffaf77bae7c7d6077775',
+        '_rev':'1-196dbf7fd8077774f767f7f9c7377770',
+        'items': [
+          {
+            'message': 'P 6 Aurelia Acord',
+            'from': '+2856368560',
+            'sent_timestamp': '105 days ago at 15:51',
+            'meta': {
+              'type': 'registration',
+              'invalid': false,
+              'description': 'Valid LMP Registration'
+            }
+          },
+          {
+            'message': 'V {{patient_id}}',
+            'from': '+2856368560',
+            'sent_timestamp': '14 days ago at 09:57',
+            'meta': {
+              'type': 'visit',
+              'description': 'Visit 1'
+            }
+          },
+        ]
+      }
     }
   ]
 });
@@ -169,6 +178,8 @@ var objectFixtures = [
     'type': 'person',
   },
   {
+    '_id': '0abf333c3fbeffaf33bae3c3d6333333',
+    '_rev':'1-196dbfdfd33333b3f363f3f3c33df3c3',
     'meta': {
       'code': 'P',
       'label': {
@@ -217,25 +228,46 @@ var objectFixtures = [
     'public_form': true,
     'use_sentinel': true
   },
-  [{
-    'message': 'P 6 Aurelia Acord',
-    'from': '+2856368560',
-    'sent_timestamp': '105 days ago at 15:51',
-    'meta': {
-      'type': 'registration',
-      'invalid': false,
-      'description': 'Valid LMP Registration'
-    }
+  {
+    '_id': '0abf777d7fbeffaf77bae7c7d6077775',
+    '_rev':'1-196dbf7fd8077774f767f7f9c7377770',
+    'items': [
+      {
+        'message': 'P 6 Aurelia Acord',
+        'from': '+2856368560',
+        'sent_timestamp': '105 days ago at 15:51',
+        'meta': {
+          'type': 'registration',
+          'invalid': false,
+          'description': 'Valid LMP Registration'
+        }
+      },
+      {
+        'message': 'V {{patient_id}}',
+        'from': '+2856368560',
+        'sent_timestamp': '14 days ago at 09:57',
+        'meta': {
+          'type': 'visit',
+          'description': 'Visit 1'
+        }
+      }
+    ]
+  }
+];
+
+var alreadyInPGFixture = [
+  {
+    '_id': '0abf501d3fbeffaf98bae6c9d6014545',
+    '_rev':'1-196dbfdfd80564b4f765f2f9c63df7c0'
   },
   {
-    'message': 'V {{patient_id}}',
-    'from': '+2856368560',
-    'sent_timestamp': '14 days ago at 09:57',
-    'meta': {
-      'type': 'visit',
-      'description': 'Visit 1'
-    }
-  }]
+    '_id': '0abf333c3fbeffaf33bae3c3d6333333',
+    '_rev':'1-196dbfdfd33333b3f363f3f3c33df3c3'
+  }
+];
+
+var objectsNotInPGFixture = [
+  objectFixtures[2]
 ];
 
 describe('iterator of couchdb data', function() {
@@ -245,6 +277,36 @@ describe('iterator of couchdb data', function() {
     it('breaks apart each top-level object', function() {
       var efcdPromise = couchiter.extractFromCouchDump(topLevelObjectFixture);
       return expect(efcdPromise).to.eventually.deep.equal(objectFixtures);
+    });
+
+  });
+
+  describe('skipExistingInPG()', function() {
+    var called = '';
+    var testResult = '';
+
+    before(function(done) {
+      var db = {'query': function(sql) {
+        // store the sql for comparison
+        called = sql;
+        // accept anything passed
+        return new Promise(function (resolve) {
+          resolve(alreadyInPGFixture);
+        });
+      }};
+      var seipPromise = couchiter.skipExistingInPG(db, pgsql, objectFixtures);
+      seipPromise.then(function (result) {
+        testResult = result;
+        done();
+      });
+    });
+
+    it('fetches docs from postgres', function() {
+      return expect(called).to.equal(pgsql.fetchEntries());
+    });
+
+    it('skips docs already in pg', function() {
+      return expect(testResult).to.deep.equal(objectsNotInPGFixture);
     });
 
   });

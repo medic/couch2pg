@@ -66,7 +66,7 @@ describe('pgsql', function() {
     process.env[envColumn] = original.column;
   });
 
-  ['createTable', 'addColumnToTable', 'checkTableSyntax']
+  ['createTable', 'addColumnToTable', 'checkTableSyntax', 'fetchEntries']
     .forEach(function (funcName) {
 
       describe(funcName + '()', function() {

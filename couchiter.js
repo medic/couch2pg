@@ -12,6 +12,14 @@ exports.extractFromCouchDump = function(dataString) {
   });
 };
 
+
+//exports.skipExistingInPG = function(db, pgsql, docList) {
+exports.skipExistingInPG = function() {
+  return new Promise(function (resolve) {
+    return resolve();
+  });
+};
+
 exports.insertListToPG = function(db, pgsql, dataList) {
   return new Promise(function (resolve, reject) {
     // create a base accepting promise for an iterative promise chain
