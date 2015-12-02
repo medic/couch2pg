@@ -1,4 +1,4 @@
-var http = require('http');
+var http = require('request');
 var nock = require('nock');
 
 var common = require('../common');
