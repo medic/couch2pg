@@ -13,13 +13,24 @@ var urlObj = {
   'user': 'uZn',
   'pass': 'pZw',
   'host': '192.168.10.12:1025',
-  'uri': '/me/_de/me?include_docs=true'
+  'uri': '/me/_de/me?something',
+  'uriT': '/me/_de/me?something&include_docs=true',
+  'uriF': '/me/_de/me?something&include_docs=false'
 };
 var urlFixture = urlObj.scheme + '://' + urlObj.user + ':' + urlObj.pass + '@' + urlObj.host + urlObj.uri;
+var urlFixtureIDT = urlFixture + '&include_docs=true';
+var urlFixtureIDF = urlFixture + '&include_docs=false';
+
+//var docList = '';
 
 describe('fetchDocs()', function() {
 
   var nock_http;
+  var requestURLs = [
+    { 'uri': urlObj.uri, 'url': urlFixture },
+    { 'uri': urlObj.uriT, 'url': urlFixtureIDT },
+    { 'uri': urlObj.uriF, 'url': urlFixtureIDF }
+  ];
 
   beforeEach(function() {
     // reset nock interceptor
@@ -27,13 +38,49 @@ describe('fetchDocs()', function() {
       .get(urlObj.uri);
   });
 
-  it('requests the specified URL', function(done) {
-    nock_http.reply(200, function(uri) {
-      expect(uri).to.equal(urlObj.uri);
-      done();
-      return dl_data;
+  context('given no include_docs override', function() {
+    requestURLs.forEach(function (testURL) {
+      it('requests without modification ' + testURL.url, function(done) {
+        nock_http = nock(urlObj.scheme + '://' + urlObj.host)
+          .get(testURL.uri);
+        nock_http.reply(200, function(uri) {
+          expect(uri).to.equal(testURL.uri);
+          done();
+          return uri;
+        });
+        cdbfuncs.fetchDocs(http, testURL.url);
+      });
     });
-    cdbfuncs.fetchDocs(http, urlFixture);
+  });
+
+  context('given true include_docs override', function() {
+    requestURLs.forEach(function (testURL) {
+      it('requests with include_docs=true against ' + testURL.url, function(done) {
+        nock_http = nock(urlObj.scheme + '://' + urlObj.host)
+          .get(testURL.uri);
+        nock_http.reply(200, function(uri) {
+          expect(uri).to.equal(urlObj.uriT);
+          done();
+          return uri;
+        });
+        cdbfuncs.fetchDocs(http, testURL.url, true);
+      });
+    });
+  });
+
+  context('given false include_docs override', function() {
+    requestURLs.forEach(function (testURL) {
+      it('requests with include_docs=false against ' + testURL.url, function(done) {
+        nock_http = nock(urlObj.scheme + '://' + urlObj.host)
+          .get(testURL.uri);
+        nock_http.reply(200, function(uri) {
+          expect(uri).to.equal(urlObj.uriF);
+          done();
+          return dl_data;
+        });
+        cdbfuncs.fetchDocs(http, testURL.url, false);
+      });
+    });
   });
 
   it('returns data via promise without modification', function() {
