@@ -1,21 +1,17 @@
 var Promise = require('./common').Promise;
+var handleReject = require('./common').handleReject;
 
 exports.fetchDocs = function(httplib, url) {
   return new Promise(function (resolve, reject) {
-    var incoming = httplib.request(url);
-    var buffer = '';
-    incoming.on('response', function (res) {
-      if ((res.statusCode >= 300) || (res.statusCode < 200)) {
-          reject('Invalid status code: ' + [res.statusCode,res.StatusMessage].toString());
+    httplib.get({ url: url }, function (err, httpResponse, buffer) {
+      if ((!err) &&
+          (httpResponse.statusCode >= 200 && httpResponse.statusCode < 300)) {
+        return resolve(buffer);
       }
-      res.setEncoding('utf8');
-      res.on('data', function(chunk) {
-        buffer = buffer + new Buffer(chunk);
-      });
-      res.on('end', function() {
-        resolve(buffer);
-      });
+      if (err) {
+        return handleReject(reject)(err);
+      }
+      return handleReject(reject)('Unsatisfactory response: ' + httpResponse.statusCode);
     });
-    incoming.end();
   });
 };
