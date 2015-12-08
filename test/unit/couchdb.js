@@ -13,15 +13,43 @@ var urlObj = {
   'user': 'uZn',
   'pass': 'pZw',
   'host': '192.168.10.12:1025',
-  'uri': '/me/_de/me?something',
-  'uriT': '/me/_de/me?something&include_docs=true',
-  'uriF': '/me/_de/me?something&include_docs=false'
+  'uri': '/me/_de/me?something=',
+  'uriT': '/me/_de/me?something=&include_docs=true',
+  'uriF': '/me/_de/me?something=&include_docs=false'
 };
 var urlFixture = urlObj.scheme + '://' + urlObj.user + ':' + urlObj.pass + '@' + urlObj.host + urlObj.uri;
 var urlFixtureIDT = urlFixture + '&include_docs=true';
 var urlFixtureIDF = urlFixture + '&include_docs=false';
 
-//var docList = '';
+describe('filterIncludeDocs()', function() {
+
+  var requestURLs = [ urlObj.uri, urlObj.uriT, urlObj.uriF ];
+
+  context('given no include_docs override', function() {
+    requestURLs.forEach(function (testURL) {
+      it('passes through the URL ' + testURL, function() {
+        expect(cdbfuncs.filterIncludeDocs(testURL)).to.equal(testURL);
+      });
+    });
+  });
+
+  context('given include_docs=true override', function() {
+    requestURLs.forEach(function (testURL) {
+      it('adds include_docs=true to URL ' + testURL, function() {
+        expect(cdbfuncs.filterIncludeDocs(testURL,true)).to.equal(urlObj.uriT);
+      });
+    });
+  });
+
+  context('given include_docs=false override', function() {
+    requestURLs.forEach(function (testURL) {
+      it('adds include_docs=false to URL ' + testURL, function() {
+        expect(cdbfuncs.filterIncludeDocs(testURL,false)).to.equal(urlObj.uriF);
+      });
+    });
+  });
+
+});
 
 describe('fetchDocs()', function() {
 
@@ -36,6 +64,11 @@ describe('fetchDocs()', function() {
     // reset nock interceptor
     nock_http = nock(urlObj.scheme + '://' + urlObj.host)
       .get(urlObj.uri);
+  });
+
+  afterEach(function () {
+    // clear current interceptors in case test failed
+    nock.cleanAll();
   });
 
   context('given no include_docs override', function() {
