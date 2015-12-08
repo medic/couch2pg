@@ -40,45 +40,60 @@ describe('fetchDocs()', function() {
 
   context('given no include_docs override', function() {
     requestURLs.forEach(function (testURL) {
-      it('requests without modification ' + testURL.url, function(done) {
+      var storeInput;
+      before(function (done) {
+        storeInput = '';
         nock_http = nock(urlObj.scheme + '://' + urlObj.host)
           .get(testURL.uri);
         nock_http.reply(200, function(uri) {
-          expect(uri).to.equal(testURL.uri);
+          storeInput = uri;
           done();
           return uri;
         });
         cdbfuncs.fetchDocs(http, testURL.url);
+      });
+      it('requests without modification ' + testURL.url, function() {
+        return expect(storeInput).to.equal(testURL.uri);
       });
     });
   });
 
   context('given true include_docs override', function() {
     requestURLs.forEach(function (testURL) {
-      it('requests with include_docs=true against ' + testURL.url, function(done) {
+      var storeInput;
+      before(function (done) {
+        storeInput = '';
         nock_http = nock(urlObj.scheme + '://' + urlObj.host)
           .get(testURL.uri);
         nock_http.reply(200, function(uri) {
-          expect(uri).to.equal(urlObj.uriT);
+          storeInput = uri;
           done();
           return uri;
         });
         cdbfuncs.fetchDocs(http, testURL.url, true);
+      });
+      it('requests with include_docs=true against ' + testURL.url, function() {
+        return expect(storeInput).to.equal(urlObj.uriT);
       });
     });
   });
 
   context('given false include_docs override', function() {
     requestURLs.forEach(function (testURL) {
-      it('requests with include_docs=false against ' + testURL.url, function(done) {
+      var storeInput;
+      before(function (done) {
+        storeInput = '';
         nock_http = nock(urlObj.scheme + '://' + urlObj.host)
           .get(testURL.uri);
         nock_http.reply(200, function(uri) {
-          expect(uri).to.equal(urlObj.uriF);
+          storeInput = uri;
           done();
           return dl_data;
         });
         cdbfuncs.fetchDocs(http, testURL.url, false);
+      });
+      it('requests with include_docs=false against ' + testURL.url, function() {
+        return expect(storeInput).to.equal(urlObj.uriF);
       });
     });
   });
