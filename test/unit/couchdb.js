@@ -44,7 +44,8 @@ describe('fetchDocs()', function() {
       before(function (done) {
         storeInput = '';
         nock_http = nock(urlObj.scheme + '://' + urlObj.host)
-          .get(testURL.uri);
+          .filteringPath(function() { return urlObj.uri; })
+          .get(urlObj.uri);
         nock_http.reply(200, function(uri) {
           storeInput = uri;
           done();
@@ -64,7 +65,8 @@ describe('fetchDocs()', function() {
       before(function (done) {
         storeInput = '';
         nock_http = nock(urlObj.scheme + '://' + urlObj.host)
-          .get(testURL.uri);
+          .filteringPath(function() { return urlObj.uri; })
+          .get(urlObj.uri);
         nock_http.reply(200, function(uri) {
           storeInput = uri;
           done();
@@ -84,7 +86,8 @@ describe('fetchDocs()', function() {
       before(function (done) {
         storeInput = '';
         nock_http = nock(urlObj.scheme + '://' + urlObj.host)
-          .get(testURL.uri);
+          .filteringPath(function() { return urlObj.uri; })
+          .get(urlObj.uri);
         nock_http.reply(200, function(uri) {
           storeInput = uri;
           done();
