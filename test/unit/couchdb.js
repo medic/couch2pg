@@ -6,7 +6,15 @@ var expect = common.expect;
 
 var cdbfuncs = require('../../cdbfuncs');
 
-var dl_data = 'cmVtIGVhcXVlIG9mZmljaWEgbGFib3J1bQp2b2x1cHRhdGVtIGVycm9yIHNlZAphY2N1c2FtdXMgbWFpb3JlcyByZXByZWhlbmRlcml0IHNpdCBoYXJ1bSBxdW9kIGVzc2Ugc2VkIGFkaXBpc2NpCm1hZ25pIGF0IGFkIHJlcnVtIHF1aWJ1c2RhbSBhbmltaSBhdXQgZXQgaXBzYW0gdm9sdXB0YXMKZXhlcmNpdGF0aW9uZW0gdXQgZWEgbmloaWwgZXVtIHF1bwpldCBtb2RpIGV0IHJlY3VzYW5kYWUgaW4gbW9sZXN0aWFlIGVycm9yIGFsaXF1YW0KIA1ldCBleGVyY2l0YXRpb25lbSBkb2xvcmVzIGFjY3VzYW11cyB2b2x1cHRhcyBvZGlvCmF1dCBkb2xvcmlidXMgbm9uIGV0IHNhZXBlIGV4cGxpY2FibyBtb2xsaXRpYSBhdXQgbmVtbwpuZW1vIGxhYm9ydW0gZG9sb3JlbXF1ZSBhY2N1c2FudGl1bQppbiBuaXNpIGVzdCBudW1xdWFtIHF1aWEKIA1sYWJvcmlvc2FtIGFyY2hpdGVjdG8gbmFtCmRvbG9yaWJ1cyBhc3BlcmlvcmVzIGlkIHF1aSB0ZW1wb3JhIGxhYm9ydW0gcXVvZCBkb2xvcmVtCnF1aSB2ZWxpdCB1dCByZXJ1bSBzZXF1aSBhbGlxdWFtCnZlbCBlc3QgbWF4aW1lIGVuaW0gcGVyc3BpY2lhdGlzIHByYWVzZW50aXVtIGV0IGVycm9y';
+var dlData = 'cmVtIGVhcXVlIG9mZmljaWEgbGFib3J1bQp2b2x1cHRhdGVtIGVycm9yIHNlZAphY2N1c2FtdXMgbWFpb3JlcyByZXByZWhlbmRlcml0IHNpdCBoYXJ1bSBxdW9kIGVzc2Ugc2VkIGFkaXBpc2NpCm1hZ25pIGF0IGFkIHJlcnVtIHF1aWJ1c2RhbSBhbmltaSBhdXQgZXQgaXBzYW0gdm9sdXB0YXMKZXhlcmNpdGF0aW9uZW0gdXQgZWEgbmloaWwgZXVtIHF1bwpldCBtb2RpIGV0IHJlY3VzYW5kYWUgaW4gbW9sZXN0aWFlIGVycm9yIGFsaXF1YW0KIA1ldCBleGVyY2l0YXRpb25lbSBkb2xvcmVzIGFjY3VzYW11cyB2b2x1cHRhcyBvZGlvCmF1dCBkb2xvcmlidXMgbm9uIGV0IHNhZXBlIGV4cGxpY2FibyBtb2xsaXRpYSBhdXQgbmVtbwpuZW1vIGxhYm9ydW0gZG9sb3JlbXF1ZSBhY2N1c2FudGl1bQppbiBuaXNpIGVzdCBudW1xdWFtIHF1aWEKIA1sYWJvcmlvc2FtIGFyY2hpdGVjdG8gbmFtCmRvbG9yaWJ1cyBhc3BlcmlvcmVzIGlkIHF1aSB0ZW1wb3JhIGxhYm9ydW0gcXVvZCBkb2xvcmVtCnF1aSB2ZWxpdCB1dCByZXJ1bSBzZXF1aSBhbGlxdWFtCnZlbCBlc3QgbWF4aW1lIGVuaW0gcGVyc3BpY2lhdGlzIHByYWVzZW50aXVtIGV0IGVycm9y';
+
+var postData = {
+  'keys': [
+    '14c6880c-7e92-4225-8ef4-d074c69943f2',
+    '95942c7b-20eb-41b5-a7f9-ef4a1b250f94',
+    '0a7ca498-3f12-4b74-bb88-f41acf5584ba'
+  ]
+};
 
 var urlObj = {
   'scheme': 'http',
@@ -59,12 +67,6 @@ describe('fetchDocs()', function() {
     { 'uri': urlObj.uriT, 'url': urlFixtureIDT },
     { 'uri': urlObj.uriF, 'url': urlFixtureIDF }
   ];
-
-  beforeEach(function() {
-    // reset nock interceptor
-    nock_http = nock(urlObj.scheme + '://' + urlObj.host)
-      .get(urlObj.uri);
-  });
 
   afterEach(function () {
     // clear current interceptors in case test failed
@@ -124,7 +126,7 @@ describe('fetchDocs()', function() {
         nock_http.reply(200, function(uri) {
           storeInput = uri;
           done();
-          return dl_data;
+          return dlData;
         });
         cdbfuncs.fetchDocs(http, testURL.url, false);
       });
@@ -134,16 +136,65 @@ describe('fetchDocs()', function() {
     });
   });
 
-  it('returns data via promise without modification', function() {
-    nock_http.reply(200, dl_data);
-    var promise = cdbfuncs.fetchDocs(http, urlFixture);
-    return expect(promise).to.eventually.deep.equal(dl_data);
-  });
+  context('using GET request when docList is not given', function() {
 
-  it('rejects promise when data not found', function() {
-    nock_http.reply(404);
-    var promise = cdbfuncs.fetchDocs(http, urlFixture);
-    return expect(promise).to.be.rejected;
+    beforeEach(function() {
+      // reset nock interceptor
+      nock_http = nock(urlObj.scheme + '://' + urlObj.host)
+        .get(urlObj.uri);
+    });
+
+    it('returns data via promise without modification', function() {
+      nock_http.reply(200, dlData);
+      var promise = cdbfuncs.fetchDocs(http, urlFixture);
+      return expect(promise).to.eventually.deep.equal(dlData);
+    });
+
+    it('rejects promise when data not found', function() {
+      nock_http.reply(404);
+      var promise = cdbfuncs.fetchDocs(http, urlFixture);
+      return expect(promise).to.be.rejected;
+    });
+
+  }); // context('using GET request when docList is not given')
+
+  context('using POST request when docList is given', function() {
+
+    beforeEach(function() {
+      // reset nock interceptor
+      nock_http = nock(urlObj.scheme + '://' + urlObj.host)
+        .filteringPath(function() { return urlObj.uri; })
+        .post(urlObj.uri, postData);
+    });
+
+    it('returns data via promise without modification', function() {
+      nock_http.reply(200, dlData);
+      var promise = cdbfuncs.fetchDocs(http, urlFixture, null, postData);
+      return expect(promise).to.eventually.deep.equal(dlData);
+    });
+
+    context('when posting data', function() {
+      var storeInput;
+      before(function (done) {
+        storeInput = '';
+        nock_http.reply(200, function(uri, data) {
+          storeInput = data;
+          done();
+          return dlData;
+        });
+        cdbfuncs.fetchDocs(http, urlFixture, null, postData);
+      });
+      it('posts data without modification', function() {
+        return expect(storeInput).to.deep.equal(postData);
+      });
+    });
+
+    it('rejects promise when data not found', function() {
+      nock_http.reply(404);
+      var promise = cdbfuncs.fetchDocs(http, urlFixture, null, postData);
+      return expect(promise).to.be.rejected;
+    });
+
   });
 
   //it('rejects promise when cannot connect occurs', function() {
