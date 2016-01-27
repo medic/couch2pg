@@ -16,6 +16,8 @@ var postData = {
   ]
 };
 
+var postDataText = JSON.stringify(postData);
+
 var urlObj = {
   'scheme': 'http',
   'user': 'uZn',
@@ -164,6 +166,7 @@ describe('fetchDocs()', function() {
       // reset nock interceptor
       nock_http = nock(urlObj.scheme + '://' + urlObj.host)
         .filteringPath(function() { return urlObj.uri; })
+        .filteringRequestBody(function() { return postDataText; })
         .post(urlObj.uri, postData);
     });
 
@@ -185,7 +188,7 @@ describe('fetchDocs()', function() {
         cdbfuncs.fetchDocs(http, urlFixture, null, postData);
       });
       it('posts data without modification', function() {
-        return expect(storeInput).to.deep.equal(postData);
+        return expect(storeInput).to.deep.equal(postDataText);
       });
     });
 
