@@ -20,7 +20,7 @@
     "grunt-contrib-jshint": "^0.11.2",
     "grunt-mocha-test": "^0.12.7",
     "mocha": "^2.2.5",
-    "nock": "^2.7.0",
+    "nock": "^3.6.0",
     "request": "^2.67.0",
     "grunt-cli": "^0.1.13"
   }
