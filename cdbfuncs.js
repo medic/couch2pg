@@ -20,10 +20,24 @@ exports.filterIncludeDocs = function(url, include_docs) {
   return url;
 };
 
-exports.fetchDocs = function(httplib, url, include_docs) {
+exports.fetchDocs = function(httplib, url, include_docs, postBody) {
   url = exports.filterIncludeDocs(url, include_docs);
   return new Promise(function (resolve, reject) {
-    httplib.get({ url: url }, function (err, httpResponse, buffer) {
+    var httplibFunc;
+    var httplibOpts = {url: url};
+    if (postBody === undefined) {
+       httplibFunc = httplib.get;
+    } else {
+       httplibFunc = httplib.post;
+       httplibOpts.form = JSON.stringify(postBody);
+       httplibOpts.headers = [
+        {
+          name: 'content-type',
+          value: 'application/json'
+        }
+      ];
+    }
+    httplibFunc(httplibOpts, function (err, httpResponse, buffer) {
       if ((!err) &&
           (httpResponse.statusCode >= 200 && httpResponse.statusCode < 300)) {
         return resolve(buffer);
