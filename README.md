@@ -25,18 +25,17 @@ var couch2pg = require('couch2pg')
 couch2pg().then(function () {console.log('done!');}).catch(function (e) {console.log(e);});
 ```
 
-## Current Process
+## Process
 
-1. Ensure Postgres has jsonb ready and clears the contents.
-1. All records are taken in from CouchDB using `_all_docs` and `include_docs=true` (as part of `COUCHDB_URL`).
-1. Each record is iterated into distinct JSON objects.
+1. Ensure Postgres has jsonb storage location ready.
+1. All record UUIDs are taken in from CouchDB using GET `_all_docs` and `include_docs=false`
+1. Fetched UUIDs are compared against existing records in Postgres.
+1. Missing docs are taken in from CouchDB using POST `_all_docs` and `include_docs=true`.
+1. Fetched docs are iterated into distinct JSON objects.
 1. Each JSON object is added to Postgres as jsonb.
 
-## Future Process
+### Missing steps:
 
-1. Ensure Postgres has jsonb ready.
-1. All records are taken in from CouchDB using `_all_docs` and `include_docs=true` (as part of `COUCHDB_URL`).
-1. Fetched records are compared against existing records in Postgres.
-1. Missing records are iterated into distinct JSON objects.
-1. Each JSON object is added to Postgres as jsonb.
 1. All materialized views are refreshed.
+
+No materialized views yet exist.
