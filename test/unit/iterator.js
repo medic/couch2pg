@@ -14,7 +14,7 @@ var pgsql = {
 };
 
 // https://github.com/medic/medic-data/blob/master/data/generic-anc/demos/
-// formated to looks like it came from CouchDB _all_docs
+// formated to looks like it came from CouchDB _all_docs with include_docs=true
 // some revs are missing from deeply nested areas, but it should not matter.
 var topLevelObjectFixture = JSON.stringify({
   'total_rows': 3,
@@ -148,6 +148,37 @@ var topLevelObjectFixture = JSON.stringify({
   ]
 });
 
+// same as above
+// formated to looks like it came from CouchDB _all_docs with include_docs=false
+var topLevelObjectFixtureNoDoc = JSON.stringify({
+  'total_rows': 3,
+  'offset': 0,
+  'rows': [
+    {
+      'id': '0abf501d3fbeffaf98bae6c9d6014545',
+      'key': '0abf501d3fbeffaf98bae6c9d6014545',
+      'value': {
+        'rev':'1-196dbfdfd80564b4f765f2f9c63df7c0'
+      }
+    },
+    {
+      'id': '0abf333c3fbeffaf33bae3c3d6333333',
+      'key': '0abf333c3fbeffaf33bae3c3d6333333',
+      'value': {
+        'rev':'1-196dbfdfd33333b3f363f3f3c33df3c3'
+      }
+    },
+    {
+      'id': '0abf777d7fbeffaf77bae7c7d6077775',
+      'key': '0abf777d7fbeffaf77bae7c7d6077775',
+      'value': {
+        'rev':'1-196dbf7fd8077774f767f7f9c7377770'
+      }
+    }
+  ]
+});
+
+// parsed topLevelObjectFixture docs
 var objectFixtures = [
   {
     'phone': '+2810258186',
@@ -255,15 +286,25 @@ var objectFixtures = [
   }
 ];
 
-var alreadyInPGFixture = [
+// parsed topLevelObjectFixture(NoDoc) with less cruft
+var objectFixturesUUID = [
   {
-    '_id': '0abf501d3fbeffaf98bae6c9d6014545',
-    '_rev':'1-196dbfdfd80564b4f765f2f9c63df7c0'
+    'id': '0abf501d3fbeffaf98bae6c9d6014545',
+    'rev': '1-196dbfdfd80564b4f765f2f9c63df7c0'
   },
   {
-    '_id': '0abf333c3fbeffaf33bae3c3d6333333',
-    '_rev':'1-196dbfdfd33333b3f363f3f3c33df3c3'
-  }
+    'id': '0abf333c3fbeffaf33bae3c3d6333333',
+    'rev': '1-196dbfdfd33333b3f363f3f3c33df3c3'
+  },
+  {
+    'id': '0abf777d7fbeffaf77bae7c7d6077775',
+    'rev': '1-196dbf7fd8077774f767f7f9c7377770'
+  },
+];
+
+var alreadyInPGFixture = [
+  objectFixtures[0],
+  objectFixtures[1]
 ];
 
 var objectsNotInPGFixture = [
@@ -281,6 +322,20 @@ describe('iterator of couchdb data', function() {
 
   });
 
+  describe('extractUUIDFromCouchDump()', function() {
+
+    it('finds each UUID+rev with include_docs=true', function() {
+      var efcdPromise = couchiter.extractUUIDFromCouchDump(topLevelObjectFixture);
+      return expect(efcdPromise).to.eventually.deep.equal(objectFixturesUUID);
+    });
+
+    it('finds each UUID+rev with include_docs=false', function() {
+      var efcdPromise = couchiter.extractUUIDFromCouchDump(topLevelObjectFixtureNoDoc);
+      return expect(efcdPromise).to.eventually.deep.equal(objectFixturesUUID);
+    });
+
+  });
+
   describe('skipExistingInPG()', function() {
     var called = '';
     var testResult = '';
@@ -294,7 +349,7 @@ describe('iterator of couchdb data', function() {
           resolve(alreadyInPGFixture);
         });
       }};
-      var seipPromise = couchiter.skipExistingInPG(db, pgsql, objectFixtures);
+      var seipPromise = couchiter.skipExistingInPG(db, pgsql, objectFixturesUUID);
       seipPromise.then(function (result) {
         testResult = result;
         done();

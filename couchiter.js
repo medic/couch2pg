@@ -12,6 +12,17 @@ exports.extractFromCouchDump = function(dataString) {
   });
 };
 
+exports.extractUUIDFromCouchDump = function(dataString) {
+  return new Promise(function (resolve) {
+    var data = JSON.parse(dataString);
+    var docs = [];
+    data.rows.forEach(function (row) {
+      docs.push(row.doc);
+    });
+    return resolve(docs);
+  });
+};
+
 exports.skipExistingInPG = function(db, pgsql, docsInCouch) {
   return db.query(pgsql.fetchEntries()).then(function (docsInPg) {
     // compile docsInPg to a simple hash lookup
