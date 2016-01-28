@@ -287,31 +287,27 @@ var objectFixtures = [
 ];
 
 // parsed topLevelObjectFixture(NoDoc) with less cruft
-var objectFixturesUUID = [
-  {
-    'id': '0abf501d3fbeffaf98bae6c9d6014545',
-    'rev': '1-196dbfdfd80564b4f765f2f9c63df7c0'
-  },
-  {
-    'id': '0abf333c3fbeffaf33bae3c3d6333333',
-    'rev': '1-196dbfdfd33333b3f363f3f3c33df3c3'
-  },
-  {
-    'id': '0abf777d7fbeffaf77bae7c7d6077775',
-    'rev': '1-196dbf7fd8077774f767f7f9c7377770'
-  },
-];
+// in the form of bulk fetch
+// https://wiki.apache.org/couchdb/HTTP_Bulk_Document_API#Fetch_Multiple_Documents_With_a_Single_Request
+var objectFixturesUUID = {
+  'keys': [
+    '0abf501d3fbeffaf98bae6c9d6014545',
+    '0abf333c3fbeffaf33bae3c3d6333333',
+    '0abf777d7fbeffaf77bae7c7d6077775'
+  ]
+};
 
 // in the form of parsed docs
 var alreadyInPGFixture = [
-  objectFixtures[0],
   objectFixtures[1]
 ];
 
-// in the form of id/rev
-var objectsNotInPGFixture = [
-  objectFixturesUUID[2]
-];
+var objectsNotInPGFixture = {
+  'keys': [
+    '0abf501d3fbeffaf98bae6c9d6014545',
+    '0abf777d7fbeffaf77bae7c7d6077775'
+  ]
+};
 
 describe('iterator of couchdb data', function() {
 
