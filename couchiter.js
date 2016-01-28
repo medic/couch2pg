@@ -37,7 +37,7 @@ exports.skipExistingInPG = function(db, pgsql, docsInCouch) {
       docsInPgHash[pgdoc._id + pgdoc._rev] = true;
     });
     return docsInCouch.filter(function (cddoc) {
-      if (docsInPgHash[cddoc._id + cddoc._rev]) {
+      if (docsInPgHash[cddoc.id + cddoc.rev]) {
         // doc is already in postgres. filter it out.
         return false;
       } else {
