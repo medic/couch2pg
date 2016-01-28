@@ -24,9 +24,18 @@ module.exports = function () {
     .then(function() {
       pgfuncs.initializeDatabase(pgsql, sco);
     })
-  // extract all documents from Couch
+  // extract all document UUIDs from Couch and convert to objects
     .then(function() {
-      return cdbfuncs.fetchDocs(httplib, process.env.COUCHDB_URL);
+      return cdbfuncs.fetchDocs(httplib, process.env.COUCHDB_URL, false);
+    })
+    .then(couchiter.extractUUIDFromCouchDump)
+  // filter out UUIDs that are already in Postgres
+    .then(function(uuids) {
+      return couchiter.skipExistingInPG(sco, pgsql, uuids);
+    })
+  // extract all missing UUIDs documents from Couch and convert to objects
+    .then(function(uuids) {
+      return cdbfuncs.fetchDocs(httplib, process.env.COUCHDB_URL, true, uuids);
     })
     .then(couchiter.extractFromCouchDump)
   // and push the individual documents into postgres
