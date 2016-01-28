@@ -15,11 +15,14 @@ exports.extractFromCouchDump = function(dataString) {
 exports.extractUUIDFromCouchDump = function(dataString) {
   return new Promise(function (resolve) {
     var data = JSON.parse(dataString);
-    var docs = [];
+    var uuids = [];
     data.rows.forEach(function (row) {
-      docs.push(row.doc);
+      uuids.push({
+        'id': row.id,
+        'rev': row.value.rev
+      });
     });
-    return resolve(docs);
+    return resolve(uuids);
   });
 };
 
