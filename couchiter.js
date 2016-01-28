@@ -15,12 +15,9 @@ exports.extractFromCouchDump = function(dataString) {
 exports.extractUUIDFromCouchDump = function(dataString) {
   return new Promise(function (resolve) {
     var data = JSON.parse(dataString);
-    var uuids = [];
+    var uuids = {'keys': []};
     data.rows.forEach(function (row) {
-      uuids.push({
-        'id': row.id,
-        'rev': row.value.rev
-      });
+      uuids.keys.push(row.id);
     });
     return resolve(uuids);
   });
@@ -34,10 +31,12 @@ exports.skipExistingInPG = function(db, pgsql, docsInCouch) {
     var docsInPgHash = {};
     docsInPg.forEach(function (pgdoc) {
       // string concatenation of _id and _rev should be unique
-      docsInPgHash[pgdoc._id + pgdoc._rev] = true;
+      // revision is not used for bulk fetch
+      //docsInPgHash[pgdoc._id + pgdoc._rev] = true;
+      docsInPgHash[pgdoc._id] = true;
     });
-    return docsInCouch.filter(function (cddoc) {
-      if (docsInPgHash[cddoc.id + cddoc.rev]) {
+    var keys = docsInCouch.keys.filter(function (uuid) {
+      if (docsInPgHash[uuid]) {
         // doc is already in postgres. filter it out.
         return false;
       } else {
@@ -45,6 +44,7 @@ exports.skipExistingInPG = function(db, pgsql, docsInCouch) {
         return true;
       }
     });
+    return { 'keys': keys }; 
   });
 };
 
