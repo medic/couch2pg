@@ -302,13 +302,15 @@ var objectFixturesUUID = [
   },
 ];
 
+// in the form of parsed docs
 var alreadyInPGFixture = [
   objectFixtures[0],
   objectFixtures[1]
 ];
 
+// in the form of id/rev
 var objectsNotInPGFixture = [
-  objectFixtures[2]
+  objectFixturesUUID[2]
 ];
 
 describe('iterator of couchdb data', function() {
