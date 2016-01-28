@@ -151,13 +151,6 @@ describe('iterative step of couchdb integration', function() {
     run_pre_tasks(done, function () {
       // restore couchdb URL backup
       var url_pieces = url.parse(couchdb_url_bu);
-      // set the query to limit to the first half of the docs
-      if ((url_pieces.search === null) || (url_pieces.search === undefined)) {
-        url_pieces.search = '?';
-      } else {
-        url_pieces.search = url_pieces.search + '&';
-      }
-      url_pieces.search = url_pieces.search + 'skip=' + Math.floor(n_docs/2);
       // configure the new URL for couch2pg and this test
       process.env.COUCHDB_URL = url.format(url_pieces);
     }, function () {
@@ -171,7 +164,6 @@ describe('iterative step of couchdb integration', function() {
     // compare couchdb doc count (n_docs) to postgres rows.
     db.one(countQueryStr).then(function (row) {
       var docs = parseInt(row.count);
-      //expect(docs).to.equal(Math.floor(n_docs));
       expect(docs).to.equal(n_docs);
     }, function (err) {
       done(err);
