@@ -14,6 +14,7 @@ var pgfuncs = require('./pgfuncs');
 
 module.exports = function () {
   var sco;
+
   // establish a single connection to postgresql
   return pglib({ 'promiseLib': Promise })(process.env.POSTGRESQL_URL)
     .connect()
@@ -41,5 +42,11 @@ module.exports = function () {
   // and push the individual documents into postgres
     .then(function (documents) {
       return couchiter.insertListToPG(sco, pgsql, documents);
+    })
+  // close the db connection and other cleanup
+    .finally(function () {
+      if (sco) {
+        sco.done();
+      }
     });
 };

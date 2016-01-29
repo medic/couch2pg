@@ -15,15 +15,11 @@ are required.
   storing CouchDB data.
 * `COUCHDB_URL`: a full path URL to `_all_doc`, including `user:pass@` and `include_docs=true`.
   * e.g. `https://user:pass@localhost/medic/_all_docs?include_docs=true`
+* `COUCH2PG_SLEEP_MINS`: number of minutes between checking for updates.
 
 ## Example usage
 
-Run `node`, then:
-
-```
-var couch2pg = require('couch2pg')
-couch2pg().then(function () {console.log('done!');}).catch(function (e) {console.log(e);});
-```
+Run `node mainloop`.
 
 ## Process
 
