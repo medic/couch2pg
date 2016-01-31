@@ -45,7 +45,7 @@ exports.fetchDocs = function(httplib, url, include_docs, postBody) {
       if (err) {
         return handleReject(reject)(err);
       }
-      return handleReject(reject)('Unsatisfactory response: ' + httpResponse.statusCode);
+      return handleReject(reject)('Unsatisfactory response when requesting ' + url + ': ' + httpResponse.statusCode + ' -- ' + buffer);
     });
   });
 };
