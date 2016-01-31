@@ -309,6 +309,12 @@ var objectsNotInPGFixture = {
   ]
 };
 
+var objectsNotInPGLimit1Fixture = {
+  'keys': [
+    '0abf501d3fbeffaf98bae6c9d6014545'
+  ]
+};
+
 describe('iterator of couchdb data', function() {
 
   describe('extractFromCouchDump()', function() {
@@ -404,6 +410,40 @@ describe('iterator of couchdb data', function() {
     */
 
     // TODO what behavior should occur if db.query fails?
+
+  });
+
+  describe('reduceUUIDs()', function() {
+
+    it('does not reduce when limit undefined', function() {
+      var promise = couchiter.reduceUUIDs(objectsNotInPGFixture);
+      return expect(promise).to.eventually.deep.equal(objectsNotInPGFixture);
+    });
+
+    it('does not reduce when given 0', function() {
+      var promise = couchiter.reduceUUIDs(objectsNotInPGFixture, 0);
+      return expect(promise).to.eventually.deep.equal(objectsNotInPGFixture);
+    });
+
+    it('does not reduce when given empty string', function() {
+      var promise = couchiter.reduceUUIDs(objectsNotInPGFixture, '');
+      return expect(promise).to.eventually.deep.equal(objectsNotInPGFixture);
+    });
+
+    it('returns 2 UUIDs when limited to 3', function() {
+      var promise = couchiter.reduceUUIDs(objectsNotInPGFixture, 3);
+      return expect(promise).to.eventually.deep.equal(objectsNotInPGFixture);
+    });
+
+    it('returns 2 UUIDs when limited to 2', function() {
+      var promise = couchiter.reduceUUIDs(objectsNotInPGFixture, 2);
+      return expect(promise).to.eventually.deep.equal(objectsNotInPGFixture);
+    });
+
+    it('returns 1 UUID when limited to 1', function() {
+      var promise = couchiter.reduceUUIDs(objectsNotInPGFixture, 1);
+      return expect(promise).to.eventually.deep.equal(objectsNotInPGLimit1Fixture);
+    });
 
   });
 

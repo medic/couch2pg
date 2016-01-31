@@ -1,7 +1,6 @@
 var httplib = require('request');
 var pgplib = require('pg-promise');
 var scrub = require('pg-format');
-var url = require('url');
 
 var common = require('../common');
 var expect = common.expect;
@@ -22,11 +21,7 @@ var countQueryStr = scrub('SELECT COUNT(%I) FROM %I;', pgcol, pgtab);
 var pgp = pgplib({ 'promiseLib': Promise });
 var db = pgp(process.env.POSTGRESQL_URL);
 
-// backup the env URL
-var couchdb_url_bu = process.env.COUCHDB_URL;
-
 // determine how many rows are in the database
-var n_docs;
 var fetch_rows = new Promise(function (resolve, reject) {
   // perform a request for no keys to get back only the db doc count
   httplib.post({
@@ -92,47 +87,30 @@ function couch_in_postgres(done) {
   });
 }
 
-function run_pre_tasks(done, f_buildurl, f_restoreurl) {
+function run_pre_tasks(done, set_limit) {
   fetch_rows.then(function (total_rows) {
-    n_docs = total_rows;
+    process.env.COUCH2PG_DOC_LIMIT = set_limit(total_rows);
   }, function (err) {
     done(err);
-  }).then(f_buildurl).then(couch2pg).catch(function (err) {
+  }).then(couch2pg).catch(function (err) {
     done(err);
-  }).then(f_restoreurl);
+  });
 }
+
 
 describe('base import of couchdb integration', function() {
   before(function (done) {
-
-    run_pre_tasks(done, function () {
-      // restore couchdb URL backup
-      var url_pieces = url.parse(couchdb_url_bu);
-      // set the query to limit to the first half of the docs
-      if ((url_pieces.search === null) || (url_pieces.search === undefined)) {
-        url_pieces.search = '?';
-      } else {
-        url_pieces.search = url_pieces.search + '&';
-      }
-      url_pieces.search = url_pieces.search + 'limit=' + Math.floor(n_docs/2);
-      // configure the new URL for couch2pg and this test
-      process.env.COUCHDB_URL = url.format(url_pieces);
-    }, function () {
-      // leave env URL unchanged for this phase of testing
-      done();
+    run_pre_tasks(done, function (couch_docs) {
+      // limit the initial import to roughly half the existing docs
+      return Math.floor(couch_docs/2);
     });
   });
 
-  after(function () {
-    // restore couchdb URL to the env
-    process.env.COUCHDB_URL = url.format(couchdb_url_bu);
-  });
-
-  it('imports as many rows as there are expected docs', function (done) {
-    // compare couchdb doc count (n_docs) to postgres rows.
+  it('imports as many docs into rows as specified by DOC_LIMIT', function (done) {
+    // compare couchdb doc count (stored in env) to postgres rows.
     db.one(countQueryStr).then(function (row) {
       var docs = parseInt(row.count);
-      expect(docs).to.equal(Math.floor(n_docs/2));
+      expect(docs).to.equal(process.env.COUCH2PG_DOC_LIMIT);
     }, function (err) {
       done(err);
     }).then(done, function (err) {
@@ -149,22 +127,16 @@ describe('base import of couchdb integration', function() {
 describe('iterative step of couchdb integration', function() {
   before(function (done) {
     run_pre_tasks(done, function () {
-      // restore couchdb URL backup
-      var url_pieces = url.parse(couchdb_url_bu);
-      // configure the new URL for couch2pg and this test
-      process.env.COUCHDB_URL = url.format(url_pieces);
-    }, function () {
-      // restore URL to grab full couchdb to test against
-      process.env.COUCHDB_URL = url.format(couchdb_url_bu);
-      done();
+      // no limit to docs for iterative step
+      return '';
     });
   });
 
   it('imports as many rows as there are total docs', function (done) {
-    // compare couchdb doc count (n_docs) to postgres rows.
+    // compare couchdb doc count (stored in env) to postgres rows.
     db.one(countQueryStr).then(function (row) {
       var docs = parseInt(row.count);
-      expect(docs).to.equal(n_docs);
+      expect(docs).to.equal(process.env.COUCH2PG_DOC_LIMIT);
     }, function (err) {
       done(err);
     }).then(done, function (err) {

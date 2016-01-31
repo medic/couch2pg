@@ -63,3 +63,12 @@ exports.insertListToPG = function(db, pgsql, dataList) {
     }).catch(handleReject(reject));
   });
 };
+
+//exports.reduceUUIDs = function(UUIDlist, limit) {
+exports.reduceUUIDs = function(UUIDlist) {
+  // return no more than limit values for UUIDlist
+  return new Promise(function (resolve) {
+    // passthrough for placeholder
+    resolve(UUIDlist);
+  });
+};
