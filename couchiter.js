@@ -64,11 +64,18 @@ exports.insertListToPG = function(db, pgsql, dataList) {
   });
 };
 
-//exports.reduceUUIDs = function(UUIDlist, limit) {
-exports.reduceUUIDs = function(UUIDlist) {
+exports.reduceUUIDs = function(UUIDlist, limit) {
   // return no more than limit values for UUIDlist
-  return new Promise(function (resolve) {
-    // passthrough for placeholder
-    resolve(UUIDlist);
-  });
+  if (!limit) {
+    // 0, '', undefined, etc; implies passthrough.
+    return new Promise(function (resolve) {
+      // passthrough without limit
+      resolve(UUIDlist);
+    });
+  } else {
+    return new Promise(function (resolve) {
+      var slice = UUIDlist.keys.slice(0,limit);
+      resolve({ 'keys': slice });
+    });
+  }
 };
