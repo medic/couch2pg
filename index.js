@@ -34,6 +34,10 @@ module.exports = function () {
     .then(function(uuids) {
       return couchiter.skipExistingInPG(sco, pgsql, uuids);
     })
+  // reduce total number of UUIDs requested if desired
+    .then(function(uuids) {
+      return couchiter.reduceUUIDs(uuids, process.env.COUCH2PG_DOC_LIMIT);
+    })
   // extract all missing UUIDs documents from Couch and convert to objects
     .then(function(uuids) {
       return cdbfuncs.fetchDocs(httplib, process.env.COUCHDB_URL, true, uuids);
