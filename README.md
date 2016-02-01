@@ -17,6 +17,10 @@ are required.
   * e.g. `https://user:pass@localhost/medic/_all_docs?include_docs=true`
 * `COUCH2PG_SLEEP_MINS`: number of minutes between checking for updates.
 
+Optional variables:
+
+* `COUCH2PG_DOC_LIMIT`: maximum number of full documents to request and download from couch during any particular iterative run. this is useful to avoid out of memory errors. Must be balanced properly with `COUCH2PG_SLEEP_MINS` to keep up with new data but not overload.
+
 ## Example usage
 
 Run `node mainloop`.
