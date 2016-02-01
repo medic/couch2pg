@@ -1,6 +1,7 @@
 var httplib = require('request');
 var pgplib = require('pg-promise');
 var scrub = require('pg-format');
+var url = require('url');
 
 var common = require('../common');
 var expect = common.expect;
@@ -37,8 +38,22 @@ var fetch_rows = new Promise(function (resolve, reject) {
 
 // verify postgres and couch match!
 function couch_in_postgres(done) {
+  var couchdb_url = process.env.COUCHDB_URL;
+  // modify couch URL to limit docs if necessary
+  if (process.env.COUCH2PG_DOC_LIMIT) {
+      var url_pieces = url.parse(couchdb_url);
+      // set the query to limit
+      if ((url_pieces.search === null) || (url_pieces.search === undefined)) {
+        url_pieces.search = '?';
+      } else {
+        url_pieces.search = url_pieces.search + '&';
+      }
+      url_pieces.search = url_pieces.search + 'limit=' + process.env.COUCH2PG_DOC_LIMIT;
+      // configure the new URL for couch2pg and this test
+      couchdb_url = url.format(url_pieces);
+  }
   // fetch all documents out of couch
-  httplib.get({ url: process.env.COUCHDB_URL },
+  httplib.get({ url: couchdb_url },
               function (err, httpResponse, buffer) {
     if (err) {
       return done(err);
@@ -87,12 +102,20 @@ function couch_in_postgres(done) {
   });
 }
 
+// track expected docs
+var n_docs;
+
 function run_pre_tasks(done, set_limit) {
   fetch_rows.then(function (total_rows) {
     process.env.COUCH2PG_DOC_LIMIT = set_limit(total_rows);
+    // if a limit is set, expect that many docs.
+    // if no limit is set, expect total rows.
+    n_docs = parseInt(process.env.COUCH2PG_DOC_LIMIT || total_rows);
   }, function (err) {
     done(err);
-  }).then(couch2pg).catch(function (err) {
+  }).then(couch2pg).then(function () {
+    done();
+  }, function (err) {
     done(err);
   });
 }
@@ -110,7 +133,7 @@ describe('base import of couchdb integration', function() {
     // compare couchdb doc count (stored in env) to postgres rows.
     db.one(countQueryStr).then(function (row) {
       var docs = parseInt(row.count);
-      expect(docs).to.equal(process.env.COUCH2PG_DOC_LIMIT);
+      expect(docs).to.equal(n_docs);
     }, function (err) {
       done(err);
     }).then(done, function (err) {
@@ -136,7 +159,7 @@ describe('iterative step of couchdb integration', function() {
     // compare couchdb doc count (stored in env) to postgres rows.
     db.one(countQueryStr).then(function (row) {
       var docs = parseInt(row.count);
-      expect(docs).to.equal(process.env.COUCH2PG_DOC_LIMIT);
+      expect(docs).to.equal(n_docs);
     }, function (err) {
       done(err);
     }).then(done, function (err) {
