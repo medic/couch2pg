@@ -6,7 +6,13 @@ exports.extractFromCouchDump = function(dataString) {
     var data = JSON.parse(dataString);
     var docs = [];
     data.rows.forEach(function (row) {
-      docs.push(row.doc);
+      // add placeholder for UUIDs with no doc (should such a thing exist)
+      if (row.doc === undefined) {
+        // placeholder in postgres to not fetch it every time.
+        docs.push({ '_id': row.id, '_rev': row.value.rev, 'type': 'no doc' });
+      } else {
+        docs.push(row.doc);
+      }
     });
     return resolve(docs);
   });
@@ -51,16 +57,17 @@ exports.skipExistingInPG = function(db, pgsql, docsInCouch) {
 exports.insertListToPG = function(db, pgsql, dataList) {
   return new Promise(function (resolve, reject) {
     // create a base accepting promise for an iterative promise chain
-    var queries = new Promise(function (resolve) { resolve(); });
+    var queries = new Promise(function (iresolve) { iresolve(); });
     dataList.forEach(function (datum) {
       queries = queries.then(function () {
-        return db.query(pgsql.insertIntoColumn(JSON.stringify(datum)));
-      }).catch(handleReject(reject));
+        var docstr = JSON.stringify(datum);
+        return db.query(pgsql.insertIntoColumn(docstr));
+      }, handleReject(reject));
     });
     // only resolve when the queries complete
     queries.then(function () {
       return resolve();
-    }).catch(handleReject(reject));
+    }, handleReject(reject));
   });
 };
 
