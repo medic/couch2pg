@@ -2,7 +2,7 @@
   "name": "couch2pg",
   "version": "0.0.0-alpha.0.1.0",
   "main": "index.js",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "git://github.com/medic/medic-analytics.git"
