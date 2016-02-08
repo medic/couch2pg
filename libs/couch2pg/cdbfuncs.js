@@ -1,5 +1,5 @@
-var Promise = require('./common').Promise;
-var handleReject = require('./common').handleReject;
+var Promise = require('../common').Promise;
+var handleReject = require('../common').handleReject;
 var qs = require('querystring');
 var ul = require('url');
 

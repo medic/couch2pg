@@ -1,5 +1,5 @@
-var Promise = require('./common').Promise;
-var handleReject = require('./common').handleReject;
+var Promise = require('../common').Promise;
+var handleReject = require('../common').handleReject;
 
 exports.extractFromCouchDump = function(dataString) {
   return new Promise(function (resolve) {

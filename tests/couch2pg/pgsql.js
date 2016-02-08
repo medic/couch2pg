@@ -1,4 +1,4 @@
-var common = require('./common');
+var common = require('../common');
 var expect = common.expect;
 
 var pgsql = require('../../libs/couch2pg/pgsql');

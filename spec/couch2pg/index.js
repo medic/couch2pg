@@ -3,7 +3,7 @@ var pgplib = require('pg-promise');
 var scrub = require('pg-format');
 var url = require('url');
 
-var common = require('../../tests/couch2pg/common');
+var common = require('../../tests/common');
 var expect = common.expect;
 var Promise = common.Promise;
 var handleError = common.handleError;

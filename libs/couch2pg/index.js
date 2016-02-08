@@ -5,7 +5,7 @@ var pglib = require('pg-promise');
 // travis couchdb does not support HTTPS, but prod systems require HTTPS
 var httplib = require('request');
 
-var Promise = require('./common').Promise;
+var Promise = require('../common').Promise;
 
 var cdbfuncs = require('./cdbfuncs');
 var couchiter = require('./couchiter');

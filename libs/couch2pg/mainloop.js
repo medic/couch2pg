@@ -1,5 +1,5 @@
 var couch2pg = require('./index');
-var Promise = require('./common').Promise;
+var Promise = require('../common').Promise;
 
 // convert minutes into ms
 var sleepMins = process.env.COUCH2PG_SLEEP_MINS * 60000;

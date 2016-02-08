@@ -5,7 +5,7 @@ chai.config.includeStack = true;
 chai.use(chaiAsPromised);
 
 exports.expect = chai.expect;
-var common = require('../../libs/couch2pg/common');
+var common = require('../libs/common');
 exports.Promise = common.Promise;
 exports.handleError = common.handleError;
 exports.handleReject = common.handleReject;

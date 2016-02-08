@@ -1,7 +1,7 @@
 var http = require('request');
 var nock = require('nock');
 
-var common = require('./common');
+var common = require('../common');
 var expect = common.expect;
 
 var cdbfuncs = require('../../libs/couch2pg/cdbfuncs');
