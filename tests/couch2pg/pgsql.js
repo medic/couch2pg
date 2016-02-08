@@ -1,7 +1,7 @@
-var common = require('../common');
+var common = require('./common');
 var expect = common.expect;
 
-var pgsql = require('../../pgsql');
+var pgsql = require('../../libs/couch2pg/pgsql');
 
 var good = {
  'table': 'a189f370',

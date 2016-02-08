@@ -1,8 +1,8 @@
-var common = require('../common');
+var common = require('./common');
 var expect = common.expect;
 var Promise = common.Promise;
 
-var couchiter = require('../../couchiter');
+var couchiter = require('../../libs/couch2pg/couchiter');
 
 var pgsql = {
   insertIntoColumn: function(x) {

@@ -3,13 +3,13 @@ var pgplib = require('pg-promise');
 var scrub = require('pg-format');
 var url = require('url');
 
-var common = require('../common');
+var common = require('../../tests/couch2pg/common');
 var expect = common.expect;
 var Promise = common.Promise;
 var handleError = common.handleError;
 var handleReject = common.handleReject;
 
-var couch2pg = require('../../index');
+var couch2pg = require('../../libs/couch2pg/index');
 
 // prebuild the query string with table and column references
 var pgcol = process.env.POSTGRESQL_COLUMN;
