@@ -1,0 +1,17 @@
+{
+  "formname": [
+    "inputs/meta/location/lat",
+    "inputs/meta/location/long",
+    "inputs/patient/_id",
+    "inputs/patient/name",
+    "inputs/patient/date_of_birth",
+    "g_inputs/_id",
+    "g_inputs/name",
+    "g_inputs/date_of_birth",
+    "outputs/stuff",
+    "random_thing",
+    "different_random_thing",
+    "group_bananas/useful_tag",
+    "group_bananas/question"
+  ]
+}

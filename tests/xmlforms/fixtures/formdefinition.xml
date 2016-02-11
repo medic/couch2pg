@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<h:html xmlns="http://www.w3.org/2002/xforms" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:jr="http://openrosa.org/javarosa" xmlns:orx="http://openrosa.org/xforms" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <h:head>
+    <model>
+      <instance>
+        <formname id="formname" version="date">
+          <inputs>
+            <meta>
+              <location>
+                <lat/>
+                <long/>
+               </location>
+             </meta>
+             <patient>
+               <_id/>
+               <name/>
+               <date_of_birth/>
+             </patient>
+           </inputs>
+           <g_inputs>
+             <_id/>
+             <name/>
+             <date_of_birth/>
+          </g_inputs>
+          <outputs>
+            <stuff/>
+          </outputs>
+          <random_thing/>
+          <different_random_thing/>
+          <group_bananas>
+            <useful_tag/>
+            <question/>
+          </group_bananas>
+        </formname>
+      </instance>
+      <bind nodeset="/assessment/context" relevant="false()"/>
+      <bind nodeset="/assessment/context/person" type="string"/>
+      <bind nodeset="/assessment/inputs/patient/_id" type="db:person"/>
+      <bind nodeset="/assessment/inputs/patient/name" type="string"/>
+      <bind nodeset="/assessment/inputs/patient/date_of_birth" type="string"/>
+      <bind nodeset="/assessment/g_inputs" relevant="../inputs/patient/_id = &quot;&quot;"/>
+      <bind nodeset="/assessment/g_inputs/_id" required="true()" type="db:person"/>
+      <bind nodeset="/assessment/g_inputs/name" type="string"/>
+      <bind nodeset="/assessment/g_inputs/date_of_birth" type="string"/>
+      <bind calculate="coalesce(../../inputs/patient/_id, ../../g_inputs/_id)" nodeset="/assessment/outputs/patient_id" type="string"/>
+      <bind calculate="coalesce(../../inputs/patient/name, ../../g_inputs/name)" nodeset="/assessment/outputs/patient_name" type="string"/>
+      <bind calculate="coalesce(../../inputs/patient/date_of_birth, ../../g_inputs/date_of_birth)" nodeset="/assessment/outputs/patient_dob" type="string"/>
+    </model>
+  </h:head>
+  <h:body class="pages">
+    <group appearance="field-list" ref="/assessment/g_inputs">
+      <label>Patient</label>
+      <input appearance="db-object" ref="/assessment/g_inputs/_id">
+        <label>Select Patient</label>
+      </input>
+      <input appearance="hidden" ref="/assessment/g_inputs/name">
+        <label>Name</label>
+      </input>
+      <input appearance="hidden" ref="/assessment/g_inputs/date_of_birth">
+        <label>Date of Birth</label>
+      </input>
+    </group>
+    <group ref="/assessment/outputs">
+      <label>Outputs</label>
+    </group>
+  </h:body>
+</h:html>
