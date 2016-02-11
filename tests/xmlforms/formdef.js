@@ -1,4 +1,5 @@
 var fs = require('fs');
+var xmleng = require('pixl-xml');
 var common = require('../common');
 var expect = common.expect;
 var Promise = common.Promise;
@@ -99,17 +100,22 @@ describe('Form Definition XML Handler', function() {
       return expect(callstack[0]).to.equal(pgsql.getFormDefinitionsXML());
     });
 
-    // this would be a passthrough, but the XML attachments are base64 encoded
+    // returns a list
     it('decodes form definitions as XML', function () {
-      return expect(result).to.equal(formDefinitionXML);
+      return expect(result).to.deep.equal([formDefinitionXML]);
     });
   });
 
   describe('filterInstanceXML()', function () {
 
     it('extracts <instance>', function () {
-      var promise = formdef.filterInstanceXML(formDefinitionXML);
-      return expect(promise).to.eventually.equal(formInstanceDefinitionXML);
+      // XML strings can be subtly different. check contents.
+      var promise = formdef.filterInstanceXML(formDefinitionXML)
+                           .then(function (xmldata) {
+                             return xmleng.parse(xmldata);
+                           });
+      var fIDXML = xmleng.parse(formInstanceDefinitionXML);
+      return expect(promise).to.eventually.deep.equal(fIDXML);
     });
 
   });

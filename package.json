@@ -1,6 +1,6 @@
 {
   "name": "couch2pg",
-  "version": "0.0.0-alpha.0.1.0",
+  "version": "0.0.0-alpha.0.3.0",
   "main": "index.js",
   "license": "Apache-2.0",
   "repository": {
@@ -11,7 +11,8 @@
     "pg": "4.4.0",
     "pg-format": "^0.1.4",
     "pg-promise": "0.9.8",
-    "rsvp": "3.0.18"
+    "rsvp": "3.0.18",
+    "pixl-xml": "1.0.1"
   },
   "devDependencies": {
     "chai": "^3.0.0",
