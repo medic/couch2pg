@@ -108,23 +108,27 @@ describe('Form Definition XML Handler', function() {
 
   describe('filterInstanceXML()', function () {
 
+    // takes in a list, returns a list
     it('extracts <instance>', function () {
-      // XML strings can be subtly different. check contents.
-      var promise = formdef.filterInstanceXML(formDefinitionXML)
-                           .then(function (xmldata) {
-                             return xmleng.parse(xmldata);
+      // XML strings can be subtly different. check contents as JSON instead.
+      var promise = formdef.filterInstanceXML([formDefinitionXML])
+                           .then(function (xmldatalist) {
+                             return xmldatalist.map(function (xmldata) {
+                               return xmleng.parse(xmldata);
+                             });
                            });
       var fIDXML = xmleng.parse(formInstanceDefinitionXML);
-      return expect(promise).to.eventually.deep.equal(fIDXML);
+      return expect(promise).to.eventually.deep.equal([fIDXML]);
     });
 
   });
 
   describe('parseFormDefXML()', function () {
 
+    // takes in a list, returns an object
     it('converts XML to an object with form properties and field list values', function () {
-      var promise = formdef.parseFormDefXML(formInstanceDefinitionXML);
-      return expect(promise).to.eventually.equal(formInstanceDefinition);
+      var promise = formdef.parseFormDefXML([formInstanceDefinitionXML]);
+      return expect(promise).to.eventually.deep.equal(formInstanceDefinition);
     });
 
   });
