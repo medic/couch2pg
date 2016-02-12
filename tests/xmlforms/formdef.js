@@ -8,7 +8,9 @@ var formdef = require('../../libs/xmlforms/formdef');
 var pgsql = {
   getFormDefinitionsXML: function() { return '13164adb'; },
   putFormList: function(x) { return '5b31-' + x + '-4c68'; },
-  putFormViews: function(x)  { return '53e3-' + x + '-400b'; }
+  putFormViews: function(x)  {
+    return '53e3-' + Object.keys(x) + '-400b-' + Object.keys(x).map(function (y) { return x[y]; }) + '-4762';
+  }
 };
 
 
@@ -160,11 +162,13 @@ describe('Form Definition XML Handler', function() {
     });
 
     it('creates and populates formlist table', function () {
+      // with a single query
       return expect(callstack[0]).to.equal(pgsql.putFormList(formNames));
     });
 
     formNames.forEach(function (formName) {
       it('includes a value for form name ' + formName, function () {
+        // in the single query
         return expect(callstack[0]).to.contain(formName);
       });
     });
@@ -183,13 +187,19 @@ describe('Form Definition XML Handler', function() {
       }, done);
     });
 
-    Object.keys(formInstanceDefinition).forEach(function (form) {
+    it('creates and populates formlist table', function () {
+      // with a single query
+      return expect(callstack[0]).to.equal(pgsql.putFormViews(formInstanceDefinition));
+    });
 
+    Object.keys(formInstanceDefinition).forEach(function (formName) {
       // in integration testing: check behavior when pre-existing and not.
-      it('creates and populates formview_' + form + ' table', function () {
-        return expect(callstack).to.contain(pgsql.putFormList());
+      it('includes values for form name ' + formName, function () {
+        return expect(callstack[0]).to.contain(formName);
       });
-
+      it('includes values for fields ' + formName, function () {
+        return expect(callstack[0]).to.contain(formInstanceDefinition[formName]);
+      });
     }); // forms
 
   }); //writeFormViews

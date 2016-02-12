@@ -70,8 +70,9 @@ exports.writeFormList = function(db, pgsql, flatdefs) {
   });
 };
 
-exports.writeFormViews = function() {
+exports.writeFormViews = function(db, pgsql, flatdefs) {
   return new Promise(function (resolve) {
+    db.query(pgsql.putFormViews(flatdefs));
     return resolve();
   });
 };
