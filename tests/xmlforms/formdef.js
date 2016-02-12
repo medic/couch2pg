@@ -40,47 +40,51 @@ var dbgen = function(callstack, retval) {
 
 var fixturePath = './tests/xmlforms/fixtures/';
 
-var formDefinitionBase64 = '';
+var formDefinitionBase64 = [];
 
-var formDefinitionXML = '';
+var formDefinitionXML = [];
 
-var formInstanceDefinitionXML = '';
+var formInstanceDefinitionXML = [];
 
 var formInstanceDefinition = require('./fixtures/formdefinition.json');
 
 var formNames = Object.keys(formInstanceDefinition);
 
+var readFixtureFile = function (filename, storage) {
+  return new Promise(function (resolve, reject) {
+    fs.readFile(fixturePath + filename, 'utf8', function (err,data) {
+      if (err) {
+        return reject(err);
+      } else {
+        storage.push(data);
+        return resolve();
+      }
+    });
+  });
+};
+
 
 describe('Form Definition XML Handler', function() {
 
-  // read in all files before running tests
+  // read in all fixture files before running tests
   before(function (done) {
-    new Promise(function (resolve, reject) {
-      fs.readFile(fixturePath + 'formdefinition.b64', 'utf8', function (err,data) {
-        if (err) {
-          reject(err);
-        } else {
-          formDefinitionBase64 = data;
-          resolve();
-        }
-      });
-    }).then(function () {
-      fs.readFile(fixturePath + 'formdefinition.xml', 'utf8', function (err,data) {
-        if (err) {
-          throw err;
-        } else {
-          formDefinitionXML = data;
-        }
-      });
-    }, done).then(function () {
-      fs.readFile(fixturePath + 'formdefinitioninstance.xml', 'utf8', function (err,data) {
-        if (err) {
-          throw err;
-        } else {
-          formInstanceDefinitionXML = data;
-        }
-      });
-    }, done).then(done, done);
+    readFixtureFile('form1definition.b64', formDefinitionBase64)
+    .then(function () {
+      return readFixtureFile('form2definition.b64', formDefinitionBase64);
+    }, done)
+    .then(function () {
+      return readFixtureFile('form1definition.xml', formDefinitionXML);
+    }, done)
+    .then(function () {
+      return readFixtureFile('form2definition.xml', formDefinitionXML);
+    }, done)
+    .then(function () {
+      return readFixtureFile('form1definitioninstance.xml', formInstanceDefinitionXML);
+    }, done)
+    .then(function () {
+      return readFixtureFile('form2definitioninstance.xml', formInstanceDefinitionXML);
+    }, done)
+    .then(done,done);
   });
 
   describe('fetchFormDefs()', function () {
@@ -90,7 +94,9 @@ describe('Form Definition XML Handler', function() {
       // pg-promise will return a list of objects as rows, with properties for
       // requested fields. One field will be requested called "form".
       var this_db = dbgen(callstack, [
-        [ { 'form': formDefinitionBase64 } ]
+        formDefinitionBase64.map(function (el) {
+          return {'form': el};
+        })
       ]);
       formdef.fetchFormDefs(this_db, pgsql).then(function (val) {
         result = val;
@@ -104,7 +110,7 @@ describe('Form Definition XML Handler', function() {
 
     // returns a list
     it('decodes form definitions as XML', function () {
-      return expect(result).to.deep.equal([formDefinitionXML]);
+      return expect(result).to.deep.equal(formDefinitionXML);
     });
   });
 
@@ -113,14 +119,16 @@ describe('Form Definition XML Handler', function() {
     // takes in a list, returns a list
     it('extracts <instance>', function () {
       // XML strings can be subtly different. check contents as JSON instead.
-      var promise = formdef.filterInstanceXML([formDefinitionXML])
+      var promise = formdef.filterInstanceXML(formDefinitionXML)
                            .then(function (xmldatalist) {
                              return xmldatalist.map(function (xmldata) {
                                return xmleng.parse(xmldata);
                              });
                            });
-      var fIDXML = xmleng.parse(formInstanceDefinitionXML);
-      return expect(promise).to.eventually.deep.equal([fIDXML]);
+      var fIDXML = formInstanceDefinitionXML.map(function (data) {
+        return xmleng.parse(data);
+      });
+      return expect(promise).to.eventually.deep.equal(fIDXML);
     });
 
   });
@@ -129,7 +137,7 @@ describe('Form Definition XML Handler', function() {
 
     // takes in a list, returns an object
     it('converts XML to an object with form properties and field list values', function () {
-      var promise = formdef.parseFormDefXML([formInstanceDefinitionXML]);
+      var promise = formdef.parseFormDefXML(formInstanceDefinitionXML);
       return expect(promise).to.eventually.deep.equal(formInstanceDefinition);
     });
 

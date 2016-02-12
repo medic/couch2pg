@@ -1,0 +1,33 @@
+<instance>
+  <otherform id="otherform" version="date">
+    <inputs>
+      <meta>
+        <location>
+          <lat/>
+          <long/>
+         </location>
+       </meta>
+       <patient>
+         <_id/>
+         <name/>
+         <date_of_birth/>
+       </patient>
+     </inputs>
+     <g_inputs>
+       <_id/>
+       <name/>
+       <date_of_birth/>
+    </g_inputs>
+    <outputs>
+      <saltines/>
+      <deeply>
+        <nested>
+          <field/>
+        </nested>
+      </deeply>
+    </outputs>
+    <atag/>
+    <btag/>
+    <ctag/>
+  </otherform>
+</instance>
