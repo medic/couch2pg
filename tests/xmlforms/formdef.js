@@ -48,6 +48,8 @@ var formInstanceDefinitionXML = '';
 
 var formInstanceDefinition = require('./fixtures/formdefinition.json');
 
+var formNames = Object.keys(formInstanceDefinition);
+
 
 describe('Form Definition XML Handler', function() {
 
@@ -149,9 +151,14 @@ describe('Form Definition XML Handler', function() {
       return expect(result).to.equal(formInstanceDefinition);
     });
 
-    // in integration testing: check behavior when pre-existing and not.
     it('creates and populates formlist table', function () {
-      return expect(callstack[0]).to.equal(pgsql.putFormList());
+      return expect(callstack[0]).to.equal(pgsql.putFormList(formNames));
+    });
+
+    formNames.forEach(function (formName) {
+      it('includes a value for form name ' + formName, function () {
+        return expect(callstack[0]).to.contain(formName);
+      });
     });
 
   });

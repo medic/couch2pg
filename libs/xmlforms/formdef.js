@@ -63,9 +63,10 @@ exports.parseFormDefXML = function(xmldatalist) {
   });
 };
 
-exports.writeFormList = function() {
+exports.writeFormList = function(db, pgsql, flatdefs) {
   return new Promise(function (resolve) {
-    return resolve();
+    db.query(pgsql.putFormList(Object.keys(flatdefs)));
+    return resolve(flatdefs);
   });
 };
 
