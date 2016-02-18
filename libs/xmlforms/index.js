@@ -27,13 +27,14 @@ module.exports = function () {
       return formdef.parseFormDefXML(listOfXMLStrings);
     }, handleError)
     .then(function (formDefs) {
-      console.log('write out list of forms to form_list table');
+      console.log('write out list of ' + Object.keys(formDefs).length + ' forms to form_list table');
       return formdef.writeFormList(db, pgsql, formDefs);
     }, handleError)
     .then(function (formDefs) {
       console.log('create a table for each form as formview_{formname}');
       return formdef.writeFormViews(db, pgsql, formDefs);
     }, handleError)
+    .catch(handleError)
     .finally(function () {
       console.log('done. releasing database connection');
       if (db) {
