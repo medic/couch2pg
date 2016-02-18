@@ -17,6 +17,10 @@ exports.filterInstanceXML = function(xmldatalist) {
   return new Promise(function (resolve) {
     var xmlinstances = [];
     xmldatalist.forEach(function (xmldata) {
+      // workaround
+      // https://github.com/jhuckaby/pixl-xml/issues/2
+      xmldata = xmldata.replace(/\r|\n/g, ' ');
+
       var jsondata = xmleng.parse(xmldata, { 'preserveAttributes': true } );
       xmlinstances.push(xmleng.stringify(jsondata['h:head'].model.instance,
                                         'instance'));
