@@ -29,7 +29,7 @@ exports.putFormViews = function(formdef) {
     manyQueries += scrub('CREATE TABLE IF NOT EXISTS %I (',
                          'formview_' + formName);
     var fields = thisForm.map(function (attr) {
-      return scrub('%I', attr);
+      return scrub('%I', attr) + ' TEXT';
     }).join(',');
     manyQueries += fields + ');';
   });
