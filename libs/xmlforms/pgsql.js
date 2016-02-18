@@ -10,7 +10,7 @@ function getFromEnv() {
 exports.getFormDefinitionsXML = function() {
   var c = getFromEnv();
   // it is important (yet arbitrary) to name the field "form"
-  return scrub('SELECT (%I #> \'{_attachments,xml,data}\') AS form FROM %I WHERE %I->>\'type\' = \'form\' AND %I->\'_attachments\' ? \'xml\';', c.jsonCol, c.jsonTable, c.jsonCol, c.jsonCol);
+  return scrub('SELECT data->>\'_rev\' AS version, (%I #> \'{_attachments,xml,data}\') AS form FROM %I WHERE %I->>\'type\' = \'form\' AND %I->\'_attachments\' ? \'xml\';', c.jsonCol, c.jsonTable, c.jsonCol, c.jsonCol);
 };
 
 exports.putFormList = function(formlist) {
@@ -22,13 +22,19 @@ exports.putFormList = function(formlist) {
 };
 
 exports.putFormViews = function(formdef) {
-  // expects an obj of {'form1': ['field1','field2',...], 'form2': [...], ...}
+  // expects an obj of {
+  //   'form1': {
+  //     'fields': ['field1','field2',...],
+  //     'version': 'x'
+  //  },
+  //  'form2':
+  //    ...
   var manyQueries = '';
   Object.keys(formdef).forEach(function (formName) {
     var thisForm = formdef[formName];
     manyQueries += scrub('CREATE TABLE IF NOT EXISTS %I (',
-                         'formview_' + formName);
-    var fields = thisForm.map(function (attr) {
+                         'formview_' + formName + '_' + formdef[formName].version);
+    var fields = thisForm.fields.map(function (attr) {
       return scrub('%I', attr) + ' TEXT';
     }).join(',');
     manyQueries += fields + ');';

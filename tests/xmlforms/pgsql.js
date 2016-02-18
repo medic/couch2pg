@@ -120,13 +120,25 @@ describe('pgsql', function() {
   describe('putFormViews()', function () {
 
     var formHash = {
-      'form1': ['field1', 'lol\'; INSERT INTO INJECTION; --', 'field3'],
-      'form2': ['value\'; DROP TABLE Students; --', 'field2', 'fieldC'],
-      'Robert\'; DROP TABLE Students; --': ['fieldA', 'fieldB', 'fieldGamma'],
-      'form4': ['fieldAlpha', 'fieldBeta', 'gamma\'; MALICIOUS; --']
+      'form1': {
+        'fields': ['field1', 'lol\'; INSERT INTO INJECTION; --', 'field3'],
+        'version': '1'
+      },
+      'form2': {
+        'fields': ['value\'; DROP TABLE Students; --', 'field2', 'fieldC'],
+        'version': 'a'
+      },
+      'Robert\'; DROP TABLE Students; --': {
+        'fields': ['fieldA', 'fieldB', 'fieldGamma'],
+        'version': 'alpha'
+      },
+      'form4': {
+        'fields': ['fieldAlpha', 'fieldBeta', 'gamma\'; MALICIOUS; --'],
+        'version': 'beta'
+      }
     };
-    var retSQL = '';
 
+    var retSQL = '';
     before(function () {
       retSQL = pgsql.putFormViews(formHash);
     });
@@ -140,11 +152,11 @@ describe('pgsql', function() {
 
     Object.keys(formHash).forEach(function (formName) {
 
-      it('contains/scrubs the form ' + formName + ' as expected', function () {
-        return expect(retSQL).to.contain(scrub('%I', 'formview_' + formName));
+      it('contains/scrubs the form ' + formName + ' with version as expected', function () {
+        return expect(retSQL).to.contain(scrub('%I', 'formview_' + formName + '_' + formHash[formName].version));
       });
 
-      formHash[formName].forEach(function (fieldName) {
+      formHash[formName].fields.forEach(function (fieldName) {
 
         it('contains/scrubs the field ' + fieldName + ' as expected', function () {
           return expect(retSQL).to.contain(scrub('%I', fieldName));
