@@ -1,32 +1,38 @@
 {
-  "formname": [
-    "inputs/meta/location/lat",
-    "inputs/meta/location/long",
-    "inputs/patient/_id",
-    "inputs/patient/name",
-    "inputs/patient/date_of_birth",
-    "g_inputs/_id",
-    "g_inputs/name",
-    "g_inputs/date_of_birth",
-    "outputs/stuff",
-    "random_thing",
-    "different_random_thing",
-    "group_bananas/useful_tag",
-    "group_bananas/question"
-  ],
-  "otherform": [
-    "inputs/meta/location/lat",
-    "inputs/meta/location/long",
-    "inputs/patient/_id",
-    "inputs/patient/name",
-    "inputs/patient/date_of_birth",
-    "g_inputs/_id",
-    "g_inputs/name",
-    "g_inputs/date_of_birth",
-    "outputs/saltines",
-    "outputs/deeply/nested/field",
-    "atag",
-    "btag",
-    "ctag"
-  ]
+  "formname": {
+    "fields": [
+      "inputs/meta/location/lat",
+      "inputs/meta/location/long",
+      "inputs/patient/_id",
+      "inputs/patient/name",
+      "inputs/patient/date_of_birth",
+      "g_inputs/_id",
+      "g_inputs/name",
+      "g_inputs/date_of_birth",
+      "outputs/stuff",
+      "random_thing",
+      "different_random_thing",
+      "group_bananas/useful_tag",
+      "group_bananas/question"
+    ],
+    "version": "03cdd3bf-1d8f-4c69-a9cc-a7c7e9e70333"
+  },
+  "otherform": {
+    "fields": [
+      "inputs/meta/location/lat",
+      "inputs/meta/location/long",
+      "inputs/patient/_id",
+      "inputs/patient/name",
+      "inputs/patient/date_of_birth",
+      "g_inputs/_id",
+      "g_inputs/name",
+      "g_inputs/date_of_birth",
+      "outputs/saltines",
+      "outputs/deeply/nested/field",
+      "atag",
+      "btag",
+      "ctag"
+    ],
+    "version": "cd5a0c2f-4f52-4c60-9d2c-c9b27a9f4595"
+  }
 }

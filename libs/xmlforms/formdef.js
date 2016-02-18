@@ -2,15 +2,21 @@ var Promise = require('../common').Promise;
 
 var xmleng = require('pixl-xml');
 
-exports.fetchFormDefs = function(db, pgsql) {
+exports.fetchFormDefs = function() {
+//exports.fetchFormDefs = function(db, pgsql) {
   // fetches a list of objects with base64 attachment in the "form" field.
   // unwraps the objects and decodes the base64
+  return new Promise(function (resolve) {
+    resolve({ 'xmlstrs': ['fail'], 'vers': ['fail'] });
+  });
+  /*
   return db.query(pgsql.getFormDefinitionsXML())
            .then(function (formlist) {
              return formlist.map(function (el) {
                return new Buffer(el.form, 'base64').toString('utf8');
              });
            }, console.log);
+  */
 };
 
 exports.filterInstanceXML = function(xmldatalist) {
