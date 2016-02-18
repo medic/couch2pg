@@ -107,7 +107,7 @@ describe('Form Definition XML Handler', function() {
       // pg-promise will return a list of objects as rows, with properties for
       // requested fields. Two fields will be requested, one called "form"
       // and one called "version".
-      var this_db = dbgen(callstack, retdb);
+      var this_db = dbgen(callstack, [retdb]);
       formdef.fetchFormDefs(this_db, pgsql).then(function (val) {
         result = val;
         return done();

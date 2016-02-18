@@ -2,21 +2,23 @@ var Promise = require('../common').Promise;
 
 var xmleng = require('pixl-xml');
 
-exports.fetchFormDefs = function() {
-//exports.fetchFormDefs = function(db, pgsql) {
+exports.fetchFormDefs = function(db, pgsql) {
   // fetches a list of objects with base64 attachment in the "form" field.
   // unwraps the objects and decodes the base64
-  return new Promise(function (resolve) {
-    resolve({ 'xmlstrs': ['fail'], 'vers': ['fail'] });
-  });
-  /*
   return db.query(pgsql.getFormDefinitionsXML())
            .then(function (formlist) {
-             return formlist.map(function (el) {
-               return new Buffer(el.form, 'base64').toString('utf8');
-             });
-           }, console.log);
-  */
+             if (!formlist) {
+               return {'xmlstrs': [], 'vers': []};
+             }
+             return {
+               'xmlstrs': formlist.map(function (el) {
+                 return new Buffer(el.form, 'base64').toString('utf8');
+               }),
+               'vers': formlist.map(function (el) {
+                 return el.version;
+               })
+             };
+           });
 };
 
 exports.filterInstanceXML = function(xmldatalist) {
@@ -48,12 +50,14 @@ var flattenObj = function(x, result, prefix) {
   return result;
 };
 
-exports.parseFormDefXML = function(xmldatalist) {
+exports.parseFormDefXML = function(xmldatalist, versions) {
   return new Promise(function (resolve) {
     // each form's name acts as index
     var flatdefs = {};
     // iterate over each form
-    xmldatalist.forEach(function (xmldata) {
+    for (var i=0; i<xmldatalist.length; i++) {
+      var xmldata = xmldatalist[i];
+
       // parse to json
       var jsondata = xmleng.parse(xmldata, { 'preserveAttributes': true } );
       // pick off form's name
@@ -71,8 +75,11 @@ exports.parseFormDefXML = function(xmldatalist) {
         return el.indexOf('_Attribs') === -1;
       });
       // track the leaves wrapped up in the form name
-      flatdefs[formname] = flattaglist;
-    });
+      flatdefs[formname] = {};
+      flatdefs[formname].fields = flattaglist;
+      // apply version
+      flatdefs[formname].version = versions[i];
+    }
     return resolve(flatdefs);
   });
 };
