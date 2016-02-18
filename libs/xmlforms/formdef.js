@@ -72,15 +72,12 @@ exports.parseFormDefXML = function(xmldatalist) {
 };
 
 exports.writeFormList = function(db, pgsql, flatdefs) {
-  return new Promise(function (resolve) {
-    db.query(pgsql.putFormList(Object.keys(flatdefs)));
-    return resolve(flatdefs);
+  return db.query(pgsql.putFormList(Object.keys(flatdefs)))
+  .then(function () {
+    return flatdefs;
   });
 };
 
 exports.writeFormViews = function(db, pgsql, flatdefs) {
-  return new Promise(function (resolve) {
-    db.query(pgsql.putFormViews(flatdefs));
-    return resolve();
-  });
+  return db.query(pgsql.putFormViews(flatdefs));
 };
