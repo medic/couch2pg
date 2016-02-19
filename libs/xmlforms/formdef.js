@@ -64,7 +64,7 @@ exports.parseFormDefXML = function(xmldatalist, versions) {
       var formname = xmleng.hashKeysToArray(jsondata)[0];
       // skip contact forms (for now)
       if (formname === 'data') {
-        return;
+        continue;
       }
       // grab subset of data
       jsondata = jsondata[formname];
