@@ -7,17 +7,9 @@ exports.fetchFormDefs = function(db, pgsql) {
   // unwraps the objects and decodes the base64
   return db.query(pgsql.getFormDefinitionsXML())
            .then(function (formlist) {
-             if (!formlist) {
-               return {'xmlstrs': [], 'vers': []};
-             }
-             return {
-               'xmlstrs': formlist.map(function (el) {
-                 return new Buffer(el.form, 'base64').toString('utf8');
-               }),
-               'vers': formlist.map(function (el) {
-                 return el.version;
-               })
-             };
+             return formlist.map(function (el) {
+               return new Buffer(el.form, 'base64').toString('utf8');
+             });
            });
 };
 
@@ -77,8 +69,8 @@ exports.parseFormDefXML = function(xmldatalist) {
       // track the leaves wrapped up in the form name
       flatdefs[formname] = {};
       flatdefs[formname].fields = flattaglist;
-      // apply version
-      flatdefs[formname].version = 'fail';
+      // apply version attribute taken from form's eponymous tag
+      flatdefs[formname].version = jsondata._Attribs.version;
     }
     return resolve(flatdefs);
   });
