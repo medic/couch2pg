@@ -15,7 +15,7 @@
       "group_bananas/useful_tag",
       "group_bananas/question"
     ],
-    "version": "03cdd3bf-1d8f-4c69-a9cc-a7c7e9e70333"
+    "version": "1970-01-01"
   },
   "otherform": {
     "fields": [
@@ -33,6 +33,6 @@
       "btag",
       "ctag"
     ],
-    "version": "cd5a0c2f-4f52-4c60-9d2c-c9b27a9f4595"
+    "version": "2000-01-01"
   }
 }

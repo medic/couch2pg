@@ -52,8 +52,6 @@ var formInstanceDefinition = require('./fixtures/formdefinition.json');
 
 var formNames = Object.keys(formInstanceDefinition);
 
-var formVersionsList = require('./fixtures/formversion.json');
-
 var readFixtureFile = function (filename, storage) {
   return new Promise(function (resolve, reject) {
     fs.readFile(fixturePath + filename, 'utf8', function (err,data) {
@@ -95,15 +93,10 @@ describe('Form Definition XML Handler', function() {
     var callstack = [];
     var result = {};
     before(function (done) {
-      var retdb = [];
-      for (var i=0; i<formDefinitionBase64.length; i++) {
-        retdb.push({
-          // build versions by referencing form name from index order and then
-          // form version from form name.
-          'version': formVersionsList[i],
-          'form': formDefinitionBase64[i]
-        });
-      }
+      // create rows with form field containing base64 encoded XML
+      var retdb = formDefinitionBase64.map(function (formXML) {
+        return {'form': formXML};
+      });
       // pg-promise will return a list of objects as rows, with properties for
       // requested fields. Two fields will be requested, one called "form"
       // and one called "version".
@@ -120,12 +113,7 @@ describe('Form Definition XML Handler', function() {
 
     // returns an object property containing every XML
     it('finds all XML for forms', function () {
-      return expect(result.xmlstrs).to.deep.equal(formDefinitionXML);
-    });
-
-    // returns an object property with form version in order of XML above
-    it('finds all versions for forms', function () {
-      return expect(result.vers).to.deep.equal(formVersionsList);
+      return expect(result).to.deep.equal(formDefinitionXML);
     });
 
   });
@@ -151,10 +139,9 @@ describe('Form Definition XML Handler', function() {
 
   describe('parseFormDefXML()', function () {
 
-    // takes in two lists, returns an object with fields and version
+    // takes in a list, returns an object with fields and version
     it('converts XML to an object with form properties and field list values', function () {
-      var promise = formdef.parseFormDefXML(formInstanceDefinitionXML,
-                                            formVersionsList);
+      var promise = formdef.parseFormDefXML(formInstanceDefinitionXML);
       return expect(promise).to.eventually.deep.equal(formInstanceDefinition);
     });
 

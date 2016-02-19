@@ -50,7 +50,7 @@ var flattenObj = function(x, result, prefix) {
   return result;
 };
 
-exports.parseFormDefXML = function(xmldatalist, versions) {
+exports.parseFormDefXML = function(xmldatalist) {
   return new Promise(function (resolve) {
     // each form's name acts as index
     var flatdefs = {};
@@ -78,7 +78,7 @@ exports.parseFormDefXML = function(xmldatalist, versions) {
       flatdefs[formname] = {};
       flatdefs[formname].fields = flattaglist;
       // apply version
-      flatdefs[formname].version = versions[i];
+      flatdefs[formname].version = 'fail';
     }
     return resolve(flatdefs);
   });
