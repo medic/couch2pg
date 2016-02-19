@@ -8,7 +8,6 @@ var pgsql = require('./pgsql');
 
 module.exports = function () {
   var db;
-  var formVersions;
   return pglib({ 'promiseLib': Promise })(process.env.POSTGRESQL_URL)
     .connect()
     .then(function (this_db) {
@@ -18,15 +17,13 @@ module.exports = function () {
       console.log('fetching XML form definitions');
       return formdef.fetchFormDefs(db, pgsql);
     })
-    .then(function (XMLcontainer) {
-      console.log('saving ' + XMLcontainer.vers.length + ' form versions.');
-      formVersions = XMLcontainer.vers;
-      console.log('extracting <instance> from ' + XMLcontainer.xmlstrs.length + ' XML definitions');
-      return formdef.filterInstanceXML(XMLcontainer.xmlstrs);
+    .then(function (listOfXMLStrings) {
+      console.log('extracting <instance> from ' + listOfXMLStrings.length + ' XML definitions');
+      return formdef.filterInstanceXML(listOfXMLStrings);
     }, handleError)
     .then(function (listOfXMLStrings) {
       console.log('converting ' + listOfXMLStrings.length + ' <instance> tags into an object of forms and flat lists of fields and form versions.');
-      return formdef.parseFormDefXML(listOfXMLStrings, formVersions);
+      return formdef.parseFormDefXML(listOfXMLStrings);
     }, handleError)
     .then(function (formDefs) {
       console.log('write out list of ' + Object.keys(formDefs).length + ' forms to form_list table');
