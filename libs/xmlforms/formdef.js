@@ -47,16 +47,14 @@ exports.parseFormDefXML = function(xmldatalist) {
     // each form's name acts as index
     var flatdefs = {};
     // iterate over each form
-    for (var i=0; i<xmldatalist.length; i++) {
-      var xmldata = xmldatalist[i];
-
+    xmldatalist.forEach(function (xmldata) {
       // parse to json
       var jsondata = xmleng.parse(xmldata, { 'preserveAttributes': true } );
       // pick off form's name
       var formname = xmleng.hashKeysToArray(jsondata)[0];
       // skip contact forms (for now)
       if (formname === 'data') {
-        continue;
+        return;
       }
       // grab subset of data
       jsondata = jsondata[formname];
@@ -71,7 +69,7 @@ exports.parseFormDefXML = function(xmldatalist) {
       flatdefs[formname].fields = flattaglist;
       // apply version attribute taken from form's eponymous tag
       flatdefs[formname].version = jsondata._Attribs.version;
-    }
+    });
     return resolve(flatdefs);
   });
 };
