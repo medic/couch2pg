@@ -10,7 +10,7 @@ function getFromEnv() {
 exports.getFormDefinitionsXML = function() {
   var c = getFromEnv();
   // it is important (yet arbitrary) to name the field "form"
-  return scrub('SELECT data->>\'_rev\' AS version, (%I #> \'{_attachments,xml,data}\') AS form FROM %I WHERE %I->>\'type\' = \'form\' AND %I->\'_attachments\' ? \'xml\';', c.jsonCol, c.jsonTable, c.jsonCol, c.jsonCol);
+  return scrub('SELECT %I->>\'_rev\' AS version, (%I #> \'{_attachments,xml,data}\') AS form FROM %I WHERE %I->>\'type\' = \'form\' AND %I->\'_attachments\' ? \'xml\';', c.jsonCol, c.jsonCol, c.jsonTable, c.jsonCol, c.jsonCol);
 };
 
 exports.putFormList = function(formlist) {
@@ -40,4 +40,63 @@ exports.putFormViews = function(formdef) {
     manyQueries += fields + ');';
   });
   return manyQueries;
+};
+
+exports.fetchMissingReportContents = function() {
+  var c = getFromEnv();
+  // reduce database calls by appending a CREATE with new return value.
+  var create = 'CREATE TABLE IF NOT EXISTS form_metadata (uuid TEXT, chw TEXT, formname TEXT, formversion TEXT, reported TIMESTAMP); ';
+  // grab specific report fields for each report in Couch but not in formmeta
+  var get_contents = scrub('SELECT %I->>\'_id\' AS uuid, %I->>\'reported_date\' AS reported, %I#>\'{contact,parent,_id}\' AS chw, %I->>\'content\' AS xml FROM %I LEFT OUTER JOIN form_metadata AS fmd ON (fmd.uuid = %I.data->>\'_id\') WHERE fmd.uuid IS NULL;', c.jsonCol, c.jsonCol, c.jsonCol, c.jsonCol, c.jsonTable);
+  return create + get_contents;
+};
+
+exports.writeReportMetaData = function (objs) {
+  // expect input objects to be a list of {
+  //   'id': 'uuid', 'formname': 'name', 'formversion': 'date',
+  //   'chw': 'uuid', 'reported': 'epoch', 'xml': {
+  //     'flattened': 'version', 'of': 'xml'
+  //   }
+  // }
+
+  // extract relevant values in the order defined below
+  var values = objs.map(function (el) {
+    return [el.id, el.chw, el.formname, el.formversion, el.reported];
+  });
+  return scrub('INSERT INTO form_metadata (uuid, chw, formname, formversion, reported) VALUES %L;', values);
+};
+
+exports.writeReportContents = function(objs, tabledefs) {
+  // expect same objs as writeFormMetaData
+  // tabledefs should be: {
+  //   'tablename': ['col1','col2','col3'...]
+  // }
+  // note that tablename is formview_formname_formversion
+
+  // sort objects into separate tables
+  var dataset = {};
+  objs.forEach(function (el) {
+    var table = scrub('%I','formview_' + el.formname + '_' + el.formversion);
+    // create list for table if one doesn't exist
+    if (dataset[table] === undefined) {
+      dataset[table] = [];
+    }
+    // store elements by their table
+    dataset[table].push(el);
+  });
+
+  // perform inserts grouped as one per table.
+  return Object.keys(dataset).forEach(function (table) {
+    // order element fields using tabledef
+    var ordered_dataset = dataset.map(function (el) {
+      // use tabledef field order
+      return tabledefs[table].map(function (field) {
+        // return element's values for tabledef's field
+        return el[field];
+      });
+    });
+
+    // prepare insert definition
+    return scrub('INSERT INTO %I (%I) VALUES %L', table, tabledefs[table], ordered_dataset);
+  }).join('; ');
 };
