@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "pg": "4.4.0",
-    "pg-format": "^0.1.4",
+    "pg-format": "^1.0.2",
     "pg-promise": "0.9.8",
     "rsvp": "3.0.18",
     "pixl-xml": "1.0.1"
