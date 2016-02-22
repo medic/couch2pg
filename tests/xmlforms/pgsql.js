@@ -53,7 +53,7 @@ function testWith(funcName, condition, hasData) {
   return expect(response).to.contain(expected);
 }
 
-describe('pgsql', function() {
+describe('xmlforms SQL', function() {
 
   var original = {};
 
@@ -67,7 +67,6 @@ describe('pgsql', function() {
     process.env[envColumn] = original.column;
   });
 
-  // odd format b/c borrowed from couch2pg pgsql tests
   ['getFormDefinitionsXML']
     .forEach(function (funcName) {
 

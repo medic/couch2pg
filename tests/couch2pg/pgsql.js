@@ -52,7 +52,7 @@ function testWith(funcName, condition, hasData) {
   return expect(response).to.contain(expected);
 }
 
-describe('pgsql', function() {
+describe('couch2pg SQL', function() {
 
   var original = {};
 
