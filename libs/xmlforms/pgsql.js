@@ -69,14 +69,17 @@ exports.writeReportMetaData = function (objs) {
 exports.writeReportContents = function(objs, tabledefs) {
   // expect same objs as writeFormMetaData
   // tabledefs should be: {
-  //   'tablename': ['col1','col2','col3'...]
+  //   'tablename': {
+  //     'fields': ['col1','col2','col3'...],
+  //     'version': 'date'
+  //   }, ...
   // }
-  // note that tablename is formview_formname_formversion
+  // this format is produced by formdef.parseFormDefXML()
 
   // sort objects into separate tables
   var dataset = {};
   objs.forEach(function (el) {
-    var table = scrub('%I','formview_' + el.formname + '_' + el.formversion);
+    var table = 'formview_' + el.formname + '_' + el.formversion;
     // create list for table if one doesn't exist
     if (dataset[table] === undefined) {
       dataset[table] = [];
@@ -86,17 +89,20 @@ exports.writeReportContents = function(objs, tabledefs) {
   });
 
   // perform inserts grouped as one per table.
-  return Object.keys(dataset).forEach(function (table) {
-    // order element fields using tabledef
-    var ordered_dataset = dataset.map(function (el) {
+  return Object.keys(dataset).map(function (table) {
+    // break up form name.
+    var form = table.split('_')[1];
+    // order element fields of objects for this table using tabledef
+    var orderedDataset = dataset[table].map(function (el) {
       // use tabledef field order
-      return tabledefs[table].map(function (field) {
+      // only one version for any form definition can be found for now.
+      return tabledefs[form].fields.map(function (field) {
         // return element's values for tabledef's field
-        return el[field];
+        return el.xml[field];
       });
     });
 
     // prepare insert definition
-    return scrub('INSERT INTO %I (%I) VALUES %L', table, tabledefs[table], ordered_dataset);
+    return scrub('INSERT INTO %I (%I) VALUES %L', table, tabledefs[form].fields, orderedDataset);
   }).join('; ');
 };
