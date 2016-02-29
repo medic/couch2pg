@@ -47,7 +47,7 @@ exports.fetchMissingReportContents = function() {
   // reduce database calls by appending a CREATE with new return value.
   var create = 'CREATE TABLE IF NOT EXISTS form_metadata (uuid TEXT, chw TEXT, formname TEXT, formversion TEXT, reported TIMESTAMP); ';
   // grab specific report fields for each report in Couch but not in formmeta
-  var get_contents = scrub('SELECT %I->>\'_id\' AS uuid, %I->>\'reported_date\' AS reported, %I#>\'{contact,parent,_id}\' AS chw, %I->>\'content\' AS xml FROM %I LEFT OUTER JOIN form_metadata AS fmd ON (fmd.uuid = %I.data->>\'_id\') WHERE fmd.uuid IS NULL;', c.jsonCol, c.jsonCol, c.jsonCol, c.jsonCol, c.jsonTable);
+  var get_contents = scrub('SELECT %I->>\'_id\' AS uuid, %I->>\'reported_date\' AS reported, %I#>\'{contact,parent,_id}\' AS chw, %I->>\'content\' AS xml FROM %I LEFT OUTER JOIN form_metadata AS fmd ON (fmd.uuid = %I->>\'_id\') WHERE %I @> \'{"type": "data_record"}\'::jsonb AND %I ? \'form\' AND fmd.uuid IS NULL;', c.jsonCol, c.jsonCol, c.jsonCol, c.jsonCol, c.jsonTable, c.jsonCol, c.jsonCol, c.jsonCol);
   return create + get_contents;
 };
 
@@ -59,11 +59,24 @@ exports.writeReportMetaData = function (objs) {
   //   }
   // }
 
+  if ((!objs) || (objs.length === 0)) {
+    // null op if there's nothing to do.
+    return '';
+  }
+
   // extract relevant values in the order defined below
   var values = objs.map(function (el) {
-    return [el.id, el.chw, el.formname, el.formversion, el.reported];
+    return [el.id, el.chw, el.formname, el.formversion,
+            // map epochs to UTC dates
+            new Date(parseInt(el.reported)).toUTCString()];
   });
   return scrub('INSERT INTO form_metadata (uuid, chw, formname, formversion, reported) VALUES %L;', values);
+};
+
+var tableToForm = function(table) {
+  // spearate formview_ off.
+  // separate _year[ hh:mm:ss] off the end
+  return table.split('formview_')[1].split('_').slice(0,-1).join('_');
 };
 
 exports.writeReportContents = function(objs, tabledefs) {
@@ -89,9 +102,16 @@ exports.writeReportContents = function(objs, tabledefs) {
   });
 
   // perform inserts grouped as one per table.
-  return Object.keys(dataset).map(function (table) {
-    // break up form name.
-    var form = table.split('_')[1];
+  return Object.keys(dataset).filter(function (table) {
+    // skip any tables which are not found in the table definitions
+    if (tabledefs[tableToForm(table)] === undefined) {
+      return false;
+    } else {
+      return true;
+    }
+  }).map(function (table) {
+    // reduce table name back to base form name
+    var form = tableToForm(table);
     // order element fields of objects for this table using tabledef
     var orderedDataset = dataset[table].map(function (el) {
       // use tabledef field order
