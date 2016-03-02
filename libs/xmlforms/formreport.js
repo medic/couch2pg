@@ -29,6 +29,10 @@ exports.fetchAndParseReports = function(db, pgsql) {
   });
 };
 
+exports.createTables = function(db) {
+  return db.query('FAIL!');
+};
+
 exports.storeMetaData = function(db, pgsql, objects) {
   // stores metadata from a list of objects fashioned as defined in
   // pgsql.writeReportMetaData()
