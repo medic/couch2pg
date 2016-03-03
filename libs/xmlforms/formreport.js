@@ -9,6 +9,11 @@ exports.fetchAndParseReports = function(db, pgsql) {
   return db.query(pgsql.fetchMissingReportContents()).then(function (data) {
     var dataset = {};
     Object.keys(data).forEach(function (i) {
+      // skip docs with empty XML and skip contacts reports
+      if (!data[i].xml || data[i].xml.slice(0,5) === '<data') {
+        return;
+      }
+
       // extract XML and add a root tag around it to reuse existing code
       // which expects wrapper
       var flatxml = parseInstanceXML('<instance>' + data[i].xml + '</instance>');
