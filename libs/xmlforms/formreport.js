@@ -1,4 +1,41 @@
-var parseInstanceXML = require('./formdef').parseInstanceXML;
+var xmleng = require('pixl-xml');
+
+// modified from
+// http://stackoverflow.com/questions/19628912/flattening-nested-arrays-objects-in-underscore-js
+var flattenObj = function(x, result, prefix) {
+  if((x !== null) && (typeof(x) === 'object')) {
+    Object.keys(x).forEach(function(k) {
+      flattenObj(x[k], result, prefix ? prefix + '/' + k : k);
+    });
+  } else {
+    result[prefix] = x;
+  }
+  return result;
+};
+
+var parseInstanceXML = function(xml) {
+  // parse to json
+  var jsondata = xmleng.parse(xml, { 'preserveAttributes': true } );
+  // pick off form's name
+  var formname = xmleng.hashKeysToArray(jsondata)[0];
+  // skip contact forms (for now)
+  if (formname === 'data') {
+    return;
+  }
+  // grab subset of data
+  jsondata = jsondata[formname];
+  // flatten the leaf tags
+  var flattaglist = Object.keys(flattenObj(jsondata, {}));
+  // filter out anything containing `_Attribs`. tag attributes not needed.
+  flattaglist = flattaglist.filter(function (el) {
+    return el.indexOf('_Attribs') === -1;
+  });
+  return {
+    'formname': formname,
+    'jsondata': jsondata,
+    'fields': flattaglist
+  };
+};
 
 exports.fetchAndParseReports = function(db, pgsql) {
   // fetches all reports that aren't yet processed
