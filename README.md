@@ -1,5 +1,8 @@
 # medic-analytics
-Software for creating read-only replicas of Medic Mobile data, using PostgreSQL v9.4
+Software for creating read-only replicas of CouchDB data inside PostgreSQL v9.4
+
+The focus is on Medic Mobile data currently stored in CouchDB, but applications
+might extend beyond that.
 
 ## Required Environment Variables
 
@@ -21,11 +24,15 @@ Optional variables:
 
 * `COUCH2PG_DOC_LIMIT`: maximum number of full documents to request and download from couch during any particular iterative run. this is useful to avoid out of memory errors. Must be balanced properly with `COUCH2PG_SLEEP_MINS` to keep up with new data but not overload.
 
-## Example usage
+## couch2pg
 
-Run `node mainloop`.
+Moves couch data into postgres.
 
-## Process
+### Example usage
+
+Run `node libs/couch2pg/mainloop`.
+
+### Process
 
 1. Ensure Postgres has jsonb storage location ready.
 1. All record UUIDs are taken in from CouchDB using GET `_all_docs` and `include_docs=false`
@@ -34,8 +41,24 @@ Run `node mainloop`.
 1. Fetched docs are iterated into distinct JSON objects.
 1. Each JSON object is added to Postgres as jsonb.
 
-### Missing steps:
+#### Missing steps:
 
 1. All materialized views are refreshed.
 
 No materialized views yet exist.
+
+(this might go into its own software)
+
+## xmlforms
+
+Create table representations of OpenRosa/XForms data in PostgreSQL.
+
+### Process
+
+1. form reports
+  1. Make sure there's a place for metadata storage
+  1. Fetch contents of reports in Couch table which don't already have metadata in the system.
+  1. Parse common features from reports.
+  1. Create `formview_` tables to store each version of each form if they are missing.
+  1. Write form report meta data.
+  1. Write form reports out to the correct `formview_` tables.
