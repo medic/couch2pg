@@ -88,6 +88,7 @@ exports.fetchAndParseReports = function(db, pgsql) {
         'formname': formname,
         'formversion': formversion,
         'chw': data[i].chw,
+        'area': data[i].area,
         'reported': data[i].reported,
         'xml': xmldict
       });

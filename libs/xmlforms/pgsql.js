@@ -24,9 +24,9 @@ exports.putFormList = function(formlist) {
 exports.fetchMissingReportContents = function() {
   var c = getFromEnv();
   // reduce database calls by appending a CREATE with new return value.
-  var create = 'CREATE TABLE IF NOT EXISTS form_metadata (uuid TEXT, chw TEXT, formname TEXT, formversion TEXT, reported TIMESTAMP); ';
+  var create = 'CREATE TABLE IF NOT EXISTS form_metadata (uuid TEXT, chw TEXT, chw_area TEXT, formname TEXT, formversion TEXT, reported TIMESTAMP); ';
   // grab specific report fields for each report in Couch but not in formmeta
-  var get_contents = scrub('SELECT %I->>\'_id\' AS uuid, %I->>\'reported_date\' AS reported, %I#>\'{contact,parent,_id}\' AS chw, %I->>\'content\' AS xml FROM %I LEFT OUTER JOIN form_metadata AS fmd ON (fmd.uuid = %I->>\'_id\') WHERE %I @> \'{"type": "data_record"}\'::jsonb AND %I ? \'form\' AND fmd.uuid IS NULL;', c.jsonCol, c.jsonCol, c.jsonCol, c.jsonCol, c.jsonTable, c.jsonCol, c.jsonCol, c.jsonCol);
+  var get_contents = scrub('SELECT %I->>\'_id\' AS uuid, %I->>\'reported_date\' AS reported, %I#>\'{contact,parent,_id}\' AS area, %I#>\'{contact,_id}\' AS chw, %I->>\'content\' AS xml FROM %I LEFT OUTER JOIN form_metadata AS fmd ON (fmd.uuid = %I->>\'_id\') WHERE %I @> \'{"type": "data_record"}\'::jsonb AND %I ? \'form\' AND fmd.uuid IS NULL;', c.jsonCol, c.jsonCol, c.jsonCol, c.jsonCol, c.jsonCol, c.jsonTable, c.jsonCol, c.jsonCol, c.jsonCol);
   return create + get_contents;
 };
 
@@ -64,11 +64,11 @@ exports.writeReportMetaData = function (objs) {
 
   // extract relevant values in the order defined below
   var values = objs.map(function (el) {
-    return [el.id, el.chw, el.formname, el.formversion,
+    return [el.id, el.chw, el.area, el.formname, el.formversion,
             // map epochs to UTC dates
             new Date(parseInt(el.reported)).toUTCString()];
   });
-  return scrub('INSERT INTO form_metadata (uuid, chw, formname, formversion, reported) VALUES %L;', values);
+  return scrub('INSERT INTO form_metadata (uuid, chw, chw_area, formname, formversion, reported) VALUES %L;', values);
 };
 
 exports.writeReportContents = function(objs) {
