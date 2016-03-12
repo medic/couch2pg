@@ -11,14 +11,12 @@ CREATE INDEX contactview_metadata_contact_uuid ON contactview_metadata (contact_
 CREATE INDEX contactview_metadata_parent_uuid ON contactview_metadata (parent_uuid);
 CREATE INDEX contactview_metadata_type ON contactview_metadata (type);
 
--- make a view for branches
+-- make a view for district hospitals
 -- does not need to be materialized since it is a metadata passthrough.
--- CREATE MATERIALIZED VIEW contactview_branch AS
-CREATE VIEW contactview_branch AS
+CREATE VIEW contactview_hospital AS
 SELECT cmd.uuid, cmd.name
 FROM contactview_metadata AS cmd
 WHERE cmd.type = 'district_hospital';
--- CREATE INDEX contactview_branch_uuid ON contactview_branch (uuid);
 
 -- extract JSON data from contacts relating to person type contacts
 -- this should not be used directly, but used by materialized views,
