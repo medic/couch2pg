@@ -133,8 +133,8 @@ exports.storeMetaData = function(db, pgsql, tableObjects) {
          });
 };
 
-exports.storeReports = function(db, pgsql, objects, formDefs) {
+exports.storeReports = function(db, pgsql, objects) {
   // stores form field data from a list of objects fashioned
   // as output from fetchAndParseReports()
-  return db.query(pgsql.writeReportContents(objects, formDefs));
+  return db.query(pgsql.writeReportContents(objects));
 };
