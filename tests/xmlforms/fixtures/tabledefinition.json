@@ -13,7 +13,8 @@
       "random_thing",
       "different_random_thing",
       "group_bananas/useful_tag",
-      "group_bananas/question"
+      "group_bananas/question",
+      "xmlforms_uuid"
     ],
     "docs": [
       {
@@ -36,7 +37,8 @@
           "random_thing": "",
           "different_random_thing": "with contents!",
           "group_bananas/useful_tag": "",
-          "group_bananas/question": "answer"
+          "group_bananas/question": "answer",
+          "xmlforms_uuid": "9993acc5-90f5-46be-a670-0ca5fe897d25"
         }
       },
       {
@@ -59,7 +61,8 @@
           "random_thing": "words go here",
           "different_random_thing": "with other contents!",
           "group_bananas/useful_tag": "is useful",
-          "group_bananas/question": "42"
+          "group_bananas/question": "42",
+          "xmlforms_uuid": "6eb3ade7-07bc-45b3-80a6-227b78fd41b2"
         }
       }
     ]
@@ -78,7 +81,8 @@
       "outputs/deeply/nested/field",
       "atag",
       "btag",
-      "ctag"
+      "ctag",
+      "xmlforms_uuid"
     ],
     "docs": [
       {
@@ -101,7 +105,8 @@
           "outputs/deeply/nested/field": "beneath the earth's crust",
           "atag": "A",
           "btag": "B",
-          "ctag": "C"
+          "ctag": "C",
+          "xmlforms_uuid": "0c16df5c-3805-4f2f-a1e7-3687cba8b3d2"
         }
       },
       {
@@ -124,7 +129,8 @@
           "outputs/deeply/nested/field": "",
           "atag": "10",
           "btag": "11",
-          "ctag": ""
+          "ctag": "",
+          "xmlforms_uuid": "ff061054-1081-4fbf-a63f-dfbdcc88780f"
         }
       }
     ]
