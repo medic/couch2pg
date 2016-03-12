@@ -76,6 +76,10 @@ exports.fetchAndParseReports = function(db, pgsql) {
         }, flatxml.jsondata);
       });
 
+      // inject special xmlforms_uuid field so that the form's UUID as
+      // determined for metadata is always accessible from an obvious location.
+      xmldict.xmlforms_uuid = data[i].uuid;
+
       // establish fields from current report if no fields are yet defined
       // for this table
       if (dataset[table].fields.length === 0) {
