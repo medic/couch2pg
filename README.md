@@ -41,14 +41,6 @@ Run `node libs/couch2pg/mainloop`.
 1. Fetched docs are iterated into distinct JSON objects.
 1. Each JSON object is added to Postgres as jsonb.
 
-#### Missing steps:
-
-1. All materialized views are refreshed.
-
-No materialized views yet exist.
-
-(this might go into its own software)
-
 ## xmlforms
 
 Create table representations of OpenRosa/XForms data in PostgreSQL.
@@ -62,3 +54,17 @@ Create table representations of OpenRosa/XForms data in PostgreSQL.
   1. Create `formview_` tables to store each version of each form if they are missing.
   1. Write form report meta data.
   1. Write form reports out to the correct `formview_` tables.
+
+#### Missing steps:
+
+* Before everything else
+  * determine if initialization has been performed
+  * if not, create metadata table and a bunch of other initial steps
+  * currently, metadata storage is created if not exists, but can't do that
+    with all the queries (like indexes) and might be inefficient with enough
+    such queries
+* After everything else
+  * All materialized views are refreshed.
+  * Function is written in missing.sql.
+    * function needs to be added as part of initialization
+    * function needs to be run with `SELECT refresh_matviews();` as last step
