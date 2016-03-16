@@ -54,3 +54,25 @@ FROM contactview_person_fields AS pplfields
 INNER JOIN contactview_metadata AS person ON (person.uuid = pplfields.uuid)
 WHERE person.uuid IN (SELECT contact_uuid FROM contactview_metadata WHERE type = 'clinic');
 CREATE INDEX contactview_clinic_person_uuid ON contactview_clinic_person (uuid);
+
+-- a function to refresh all materialized views
+CREATE FUNCTION refresh_matviews() RETURNS INTEGER AS $$
+DECLARE
+  matview RECORD;
+BEGIN
+  RAISE NOTICE 'Refreshing base metaviews';
+  -- other matviews rely on contactview_metadata, which is a matview
+  -- so load this first
+  REFRESH MATERIALIZED VIEW contactview_metadata;
+  FOR matview IN SELECT matviewname FROM pg_catalog.pg_matviews LOOP
+    IF matview.matviewname = 'contactview_metadata' THEN
+      -- this one is already done, skip it.
+      CONTINUE;
+    END IF;
+    RAISE NOTICE 'Refreshing %', matview.matviewname;
+    EXECUTE format('REFRESH MATERIALIZED VIEW %I', matview.matviewname);
+  END LOOP;
+  RAISE NOTICE 'Materialized views refreshed.';
+  RETURN 1;
+END;
+$$ LANGUAGE plpgsql;
