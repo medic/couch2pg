@@ -36,22 +36,35 @@ var fetch_rows = new Promise(function (resolve, reject) {
   });
 });
 
+// helper for preparing the url for another query parameter
+function append_param(url_pieces, param) {
+  if ((url_pieces.search === null) || (url_pieces.search === undefined)) {
+    url_pieces.search = '?';
+  } else {
+    url_pieces.search = url_pieces.search + '&';
+  }
+  url_pieces.search = url_pieces.search + param;
+  return url_pieces;
+}
+
 // verify postgres and couch match!
 function couch_in_postgres(done) {
   var couchdb_url = process.env.COUCHDB_URL;
+
+  // ensure include_docs=true is added, since this is no longer guaranteed.
+  var url_pieces = url.parse(couchdb_url, true);
+  if (!url_pieces.query.include_docs) {
+    url_pieces = append_param(url_pieces, 'include_docs=true');
+  }
+
   // modify couch URL to limit docs if necessary
   if (process.env.COUCH2PG_DOC_LIMIT) {
-      var url_pieces = url.parse(couchdb_url);
       // set the query to limit
-      if ((url_pieces.search === null) || (url_pieces.search === undefined)) {
-        url_pieces.search = '?';
-      } else {
-        url_pieces.search = url_pieces.search + '&';
-      }
-      url_pieces.search = url_pieces.search + 'limit=' + process.env.COUCH2PG_DOC_LIMIT;
-      // configure the new URL for couch2pg and this test
-      couchdb_url = url.format(url_pieces);
+      url_pieces = append_param(url_pieces, 'limit=' + process.env.COUCH2PG_DOC_LIMIT);
   }
+  // configure the new URL for couch2pg and this test
+  couchdb_url = url.format(url_pieces);
+
   // fetch all documents out of couch
   httplib.get({ url: couchdb_url },
               function (err, httpResponse, buffer) {
