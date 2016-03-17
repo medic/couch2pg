@@ -16,8 +16,9 @@ are required.
 * `POSTGRESQL_TABLE`: name of table for storing CouchDB data.
 * `POSTGRESQL_COLUMN`: name of the `jsonb` column in `POSTGRESQL_TABLE` for
   storing CouchDB data.
-* `COUCHDB_URL`: a full path URL to `_all_doc`, including `user:pass@` and `include_docs=true`.
-  * e.g. `https://user:pass@localhost/medic/_all_docs?include_docs=true`
+* `COUCHDB_URL`: a full path URL to `_all_docs`, including `user:pass@`, the
+  database name, and `_all_docs`.
+  * e.g. `https://user:pass@localhost/medic/_all_docs`
 * `COUCH2PG_SLEEP_MINS`: number of minutes between checking for updates.
 
 Optional variables:
