@@ -9,6 +9,8 @@ var formreport = require('../../libs/xmlforms/formreport');
 // fixtures 
 
 var pgsql = {
+  checkFormMetadata: function() { return 'c64d3fc0'; },
+  initializeFormMetadata: function() { return 'bb204db1'; },
   fetchMissingReportContents: function() { return 'fb349fd4'; },
   putFormViews: function(x)  {
     return '53e3-' + JSON.stringify(x) + '-4762';
@@ -41,7 +43,95 @@ var dbContents = require('./fixtures/formcontentsdb.json');
 
 // tests
 
-describe('Form Reports XML Handler', function() {
+describe('Form Reports XML Handler', function () {
+
+  describe('formMetadataNeeded()', function () {
+
+    context('when table is not found', function () {
+      var callstack = [];
+      var result = {};
+      before(function (done) {
+        var this_db = dbgen(callstack, [ {
+          'exists': false
+        } ]);
+        formreport.formMetadataNeeded(this_db, pgsql)
+        .then(function (val) {
+          result = val;
+          return done();
+        }, done);
+      });
+
+      it('passes expected query', function () {
+        return expect(callstack[0]).to.equal(pgsql.checkFormMetadata());
+      });
+
+      it('returns true', function () {
+        return expect(result).to.be.true;
+      });
+
+    });
+
+    context('when table is found', function () {
+      var callstack = [];
+      var result = {};
+      before(function (done) {
+        var this_db = dbgen(callstack, [ {
+          'exists': true
+        } ]);
+        formreport.formMetadataNeeded(this_db, pgsql)
+        .then(function (val) {
+          result = val;
+          return done();
+        }, done);
+      });
+
+      it('passes expected query', function () {
+        return expect(callstack[0]).to.equal(pgsql.checkFormMetadata());
+      });
+
+      it('returns false', function () {
+        return expect(result).to.be.false;
+      });
+
+    });
+
+  }); // formMetadataNeeded()
+
+  describe('addFormMetadata()', function () {
+
+    context('when table is not found', function () {
+      var callstack = [];
+      before(function (done) {
+        var this_db = dbgen(callstack);
+        formreport.addFormMetadata(this_db, pgsql, true)
+        .then(function () {
+          return done();
+        }, done);
+      });
+
+      it('passes expected query', function () {
+        return expect(callstack[0]).to.equal(pgsql.initializeFormMetadata());
+      });
+
+    });
+
+    context('when table is found', function () {
+      var callstack = [];
+      before(function (done) {
+        var this_db = dbgen(callstack);
+        formreport.addFormMetadata(this_db, pgsql, false)
+        .then(function () {
+          return done();
+        }, done);
+      });
+
+      it('passes no query', function () {
+        return expect(callstack).to.deep.equal([]);
+      });
+
+    });
+
+  }); // addFormMetadata()
 
   describe('fetchAndParseReports()', function () {
     var callstack = [];
@@ -127,4 +217,4 @@ describe('Form Reports XML Handler', function() {
 
   });
 
-});
+}); // XML Forms Handler

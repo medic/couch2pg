@@ -37,6 +37,18 @@ var parseInstanceXML = function(xml) {
   };
 };
 
+var Promise = require('../common').Promise;
+exports.formMetadataNeeded = function() {
+  return new Promise(function (resolve, reject) {
+    return reject();
+  });
+};
+exports.addFormMetadata = function() {
+  return new Promise(function (resolve, reject) {
+    return reject();
+  });
+};
+
 exports.fetchAndParseReports = function(db, pgsql) {
   // fetches all reports that aren't yet processed
   // returns dataset of form fields and form reports organized by tablename
