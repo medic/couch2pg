@@ -1,4 +1,5 @@
 var scrub = require('pg-format');
+var fs = require('fs');
 
 function getFromEnv() {
   var config = {};
@@ -10,7 +11,7 @@ function getFromEnv() {
 exports.checkForContacts = function() {
   var c = getFromEnv();
   // return version and 1 materialized view name (if any)
-  return scrub('SELECT LEFT(%I#>>\'{kanso,config,version}\',3)::NUMERIC AS version, matviewname FROM %I LEFT OUTER JOIN pg_catalog.pg_matviews ON (true) WHERE %I->>\'_id\' = \'_design/medic\' LIMIT 1;', lg.jsonCol, lg.jsonTable, lg.jsonCol);
+  return scrub('SELECT LEFT(%I#>>\'{kanso,config,version}\',3)::NUMERIC AS version, matviewname FROM %I LEFT OUTER JOIN pg_catalog.pg_matviews ON (true) WHERE %I->>\'_id\' = \'_design/medic\' LIMIT 1;', c.jsonCol, c.jsonTable, c.jsonCol);
 };
 
 exports.initializeContacts = function() {
