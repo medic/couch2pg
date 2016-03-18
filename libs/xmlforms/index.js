@@ -3,6 +3,7 @@ var pglib = require('pg-promise');
 var Promise = require('../common').Promise;
 var handleError = require('../common').handleError;
 
+var contacts = require('./contacts');
 var formreport = require('./formreport');
 var pgsql = require('./pgsql');
 
@@ -14,7 +15,24 @@ module.exports = function () {
       db = this_db;
     })
     .then(function () {
-      console.log('create metadata table');
+      console.log('checking if contacts are needed and missing');
+      return contacts.contactsNeeded(db, pgsql);
+    })
+    .then(function (needed) {
+      console.log('contacts needed? ' + needed);
+      console.log('adding if necessary.');
+      return contacts.addContacts(db, pgsql, needed);
+    })
+    .then(function () {
+      console.log('checking if form metadata is missing');
+      return formreport.formMetadataNeeded(db, pgsql);
+    })
+    .then(function (needed) {
+      console.log('metadata table needed? ' + needed);
+      console.log('adding if necessary.');
+      return formreport.addFormMetadata(db, pgsql, needed);
+    })
+    .then(function () {
       console.log('find unparsed reports and parse them');
       return formreport.fetchAndParseReports(db, pgsql);
     }, handleError)
@@ -29,6 +47,10 @@ module.exports = function () {
     .then(function (reports) {
       console.log('writing report data to database');
       return formreport.storeReports(db, pgsql, reports);
+    }, handleError)
+    .then(function () {
+      console.log('refreshing materialized views');
+      return db.query(pgsql.refreshMatViews());
     }, handleError)
     .catch(handleError)
     .finally(function () {
