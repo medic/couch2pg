@@ -112,3 +112,7 @@ exports.writeReportContents = function(objs) {
   });
   return inserts;
 };
+
+exports.refreshMatViews = function() {
+  return 'SELECT refresh_matviews();';
+};

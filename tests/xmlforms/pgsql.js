@@ -361,4 +361,12 @@ describe('xmlforms SQL', function() {
 
   }); // writeReportContents()
 
+  describe('refreshMatViews()', function() {
+
+    it('returns specific SQL', function() {
+      return expect(pgsql.refreshMatViews()).to.equal('SELECT refresh_matviews();');
+    });
+
+  }); // refreshMatViews()
+
 });
