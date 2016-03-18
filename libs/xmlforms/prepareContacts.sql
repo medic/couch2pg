@@ -41,9 +41,9 @@ CREATE INDEX contactview_chw_uuid ON contactview_chw (uuid);
 
 -- make a view for clinics and cache it
 CREATE MATERIALIZED VIEW contactview_clinic AS
-SELECT cmd.uuid, cmd.name, chp.uuid AS chp_uuid, cmd.reported AS created
+SELECT cmd.uuid, cmd.name, chw.uuid AS chw_uuid, cmd.reported AS created
 FROM contactview_metadata AS cmd
-INNER JOIN contactview_chp AS chp ON (cmd.parent_uuid = chp.area_uuid)
+INNER JOIN contactview_chw AS chw ON (cmd.parent_uuid = chw.area_uuid)
 WHERE type = 'clinic';
 CREATE INDEX contactview_clinic_uuid ON contactview_clinic (uuid);
 
