@@ -1,3 +1,5 @@
+var fs = require('fs');
+
 var common = require('../common');
 var expect = common.expect;
 
@@ -71,7 +73,7 @@ describe('xmlforms SQL', function() {
     process.env[envColumn] = original.column;
   });
 
-  ['getFormDefinitionsXML', 'fetchMissingReportContents']
+  ['getFormDefinitionsXML', 'fetchMissingReportContents', 'checkForContacts']
   .forEach(function (funcName) {
 
     describe(funcName + '()', function() {
@@ -95,6 +97,16 @@ describe('xmlforms SQL', function() {
     });
 
   }); // forEach uses env table
+
+  describe('initializeContacts()', function() {
+
+    it('returns contents of prepareContacts.sql', function() {
+      var fixedSQL = fs.readFileSync('./libs/xmlforms/prepareContacts.sql',
+                                     {'encoding': 'utf8'});
+      return expect(pgsql.initializeContacts()).to.equal(fixedSQL);
+    });
+
+  }); // initializeContacts()
 
   describe('putFormList()', function () {
 

@@ -15,7 +15,8 @@ exports.checkForContacts = function() {
 };
 
 exports.initializeContacts = function() {
-  return fs.readFileSync('./prepareContacts.sql');
+  return fs.readFileSync('./libs/xmlforms/prepareContacts.sql',
+                         {'encoding': 'utf8'});
 };
 
 exports.getFormDefinitionsXML = function() {
