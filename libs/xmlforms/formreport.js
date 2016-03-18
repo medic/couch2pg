@@ -1,3 +1,5 @@
+var Promise = require('../common').Promise;
+
 var xmleng = require('pixl-xml');
 
 // modified from
@@ -37,16 +39,22 @@ var parseInstanceXML = function(xml) {
   };
 };
 
-var Promise = require('../common').Promise;
-exports.formMetadataNeeded = function() {
-  return new Promise(function (resolve, reject) {
-    return reject();
-  });
+exports.formMetadataNeeded = function(db, pgsql) {
+  return db.query(pgsql.checkFormMetadata())
+         .then(function (rows) {
+           // convert "exists" into "needed"
+           return !rows[0].exists;
+         });
 };
-exports.addFormMetadata = function() {
-  return new Promise(function (resolve, reject) {
-    return reject();
-  });
+
+exports.addFormMetadata = function(db, pgsql, needed) {
+  if (needed) {
+    return db.query(pgsql.initializeFormMetadata());
+  } else {
+    return new Promise(function (resolve) {
+      return resolve();
+    });
+  }
 };
 
 exports.fetchAndParseReports = function(db, pgsql) {

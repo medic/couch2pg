@@ -51,9 +51,11 @@ describe('Form Reports XML Handler', function () {
       var callstack = [];
       var result = {};
       before(function (done) {
-        var this_db = dbgen(callstack, [ {
-          'exists': false
-        } ]);
+        var this_db = dbgen(callstack, [
+          [ {
+            'exists': false
+          } ]
+        ]);
         formreport.formMetadataNeeded(this_db, pgsql)
         .then(function (val) {
           result = val;
@@ -75,9 +77,11 @@ describe('Form Reports XML Handler', function () {
       var callstack = [];
       var result = {};
       before(function (done) {
-        var this_db = dbgen(callstack, [ {
-          'exists': true
-        } ]);
+        var this_db = dbgen(callstack, [
+          [ {
+            'exists': true
+          } ]
+        ]);
         formreport.formMetadataNeeded(this_db, pgsql)
         .then(function (val) {
           result = val;
