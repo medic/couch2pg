@@ -33,15 +33,19 @@ exports.putFormList = function(formlist) {
   return 'DROP TABLE IF EXISTS form_list; CREATE TABLE form_list (name TEXT); INSERT INTO form_list VALUES ' + formlist;
 };
 
+exports.checkFormMetadata = function() {
+  return 'SELECT count(tablename) > 0 AS exists FROM pg_catalog.pg_tables WHERE tablename = \'form_metadata\';';
+};
+
+exports.initializeFormMetadata = function() {
+  // add a bunch of indices while we're about
+  return 'CREATE TABLE IF NOT EXISTS form_metadata (uuid TEXT, chw TEXT, chw_area TEXT, formname TEXT, formversion TEXT, reported TIMESTAMP); CREATE INDEX form_metadata_uuid ON form_metadata (uuid); CREATE INDEX form_metadata_chw ON form_metadata (chw); CREATE INDEX form_metadata_reported ON form_metadata (reported); CREATE INDEX form_metadata_formname ON form_metadata (formname); CREATE INDEX form_metadata_formversion ON form_metadata (formname, formversion); ';
+};
+
 exports.fetchMissingReportContents = function() {
   var c = getFromEnv();
-  // reduce database calls by appending a CREATE with no return value.
-  // add a bunch of indices while we're about
-  var create = 'CREATE TABLE IF NOT EXISTS form_metadata (uuid TEXT, chw TEXT, chw_area TEXT, formname TEXT, formversion TEXT, reported TIMESTAMP);';
-  //var create = 'CREATE TABLE IF NOT EXISTS form_metadata (uuid TEXT, chw TEXT, chw_area TEXT, formname TEXT, formversion TEXT, reported TIMESTAMP); CREATE INDEX form_metadata_uuid ON form_metadata (uuid); CREATE INDEX form_metadata_chw ON form_metadata (chw); CREATE INDEX form_metadata_reported ON form_metadata (reported); CREATE INDEX form_metadata_formname ON form_metadata (formname); CREATE INDEX form_metadata_formversion ON form_metadata (formname, formversion); ';
   // grab specific report fields for each report in Couch but not in formmeta
-  var get_contents = scrub('SELECT %I->>\'_id\' AS uuid, %I->>\'reported_date\' AS reported, %I#>\'{contact,parent,_id}\' AS area, %I#>\'{contact,_id}\' AS chw, %I->>\'content\' AS xml FROM %I LEFT OUTER JOIN form_metadata AS fmd ON (fmd.uuid = %I->>\'_id\') WHERE %I @> \'{"type": "data_record"}\'::jsonb AND %I ? \'form\' AND fmd.uuid IS NULL;', c.jsonCol, c.jsonCol, c.jsonCol, c.jsonCol, c.jsonCol, c.jsonTable, c.jsonCol, c.jsonCol, c.jsonCol);
-  return create + get_contents;
+  return scrub('SELECT %I->>\'_id\' AS uuid, %I->>\'reported_date\' AS reported, %I#>\'{contact,parent,_id}\' AS area, %I#>\'{contact,_id}\' AS chw, %I->>\'content\' AS xml FROM %I LEFT OUTER JOIN form_metadata AS fmd ON (fmd.uuid = %I->>\'_id\') WHERE %I @> \'{"type": "data_record"}\'::jsonb AND %I ? \'form\' AND fmd.uuid IS NULL;', c.jsonCol, c.jsonCol, c.jsonCol, c.jsonCol, c.jsonCol, c.jsonTable, c.jsonCol, c.jsonCol, c.jsonCol);
 };
 
 exports.putFormViews = function(tabledef) {

@@ -108,6 +108,22 @@ describe('xmlforms SQL', function() {
 
   }); // initializeContacts()
 
+  describe('checkFormMetadata', function () {
+
+    it('returns a very specific SQL string', function () {
+      expect(pgsql.checkFormMetadata()).to.equal('SELECT count(tablename) > 0 AS exists FROM pg_catalog.pg_tables WHERE tablename = \'form_metadata\';');
+    });
+
+  });
+
+  describe('initializeFormMetadata', function () {
+
+    it('returns a very specific SQL string', function () {
+      expect(pgsql.initializeFormMetadata()).to.equal('CREATE TABLE IF NOT EXISTS form_metadata (uuid TEXT, chw TEXT, chw_area TEXT, formname TEXT, formversion TEXT, reported TIMESTAMP); CREATE INDEX form_metadata_uuid ON form_metadata (uuid); CREATE INDEX form_metadata_chw ON form_metadata (chw); CREATE INDEX form_metadata_reported ON form_metadata (reported); CREATE INDEX form_metadata_formname ON form_metadata (formname); CREATE INDEX form_metadata_formversion ON form_metadata (formname, formversion); ');
+    });
+
+  });
+
   describe('putFormList()', function () {
 
     // https://xkcd.com/327/
