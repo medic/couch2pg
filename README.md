@@ -48,24 +48,16 @@ Create table representations of OpenRosa/XForms data in PostgreSQL.
 
 ### Process
 
+1. contacts
+  1. Make sure version is between 0.6 or 2.6.
+  1. Determine if contacts have been generated.
+  1. If version .6 and contacts missing, create contacts framework.
 1. form reports
-  1. Make sure there's a place for metadata storage
+  1. Make sure there's a place for metadata storage (and index it)
   1. Fetch contents of reports in Couch table which don't already have metadata in the system.
   1. Parse common features from reports.
   1. Create `formview_` tables to store each version of each form if they are missing.
   1. Write form report meta data.
   1. Write form reports out to the correct `formview_` tables.
-
-#### Missing steps:
-
-* Before everything else
-  * determine if initialization has been performed
-  * if not, create metadata table and a bunch of other initial steps
-  * currently, metadata storage is created if not exists, but can't do that
-    with all the queries (like indexes) and might be inefficient with enough
-    such queries
-* After everything else
-  * All materialized views are refreshed.
-  * Function is written in missing.sql.
-    * function needs to be added as part of initialization
-    * function needs to be run with `SELECT refresh_matviews();` as last step
+1. materialized views
+  1. refresh them!
