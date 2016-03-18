@@ -7,6 +7,16 @@ function getFromEnv() {
   return config;
 }
 
+exports.checkForContacts = function() {
+  var c = getFromEnv();
+  // return version and 1 materialized view name (if any)
+  return scrub('SELECT LEFT(%I#>>\'{kanso,config,version}\',3)::NUMERIC AS version, matviewname FROM %I LEFT OUTER JOIN pg_catalog.pg_matviews ON (true) WHERE %I->>\'_id\' = \'_design/medic\' LIMIT 1;', lg.jsonCol, lg.jsonTable, lg.jsonCol);
+};
+
+exports.initializeContacts = function() {
+  return fs.readFileSync('./prepareContacts.sql');
+};
+
 exports.getFormDefinitionsXML = function() {
   var c = getFromEnv();
   // it is important (yet arbitrary) to name the field "form"
