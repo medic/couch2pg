@@ -6,8 +6,8 @@ function wrapError(err) {
     // wrap strings (which have length prop) with Error()
     err = Error(err);
   }
-  console.log('Error encountered!');
-  console.log(err);
+  console.error('Error encountered!');
+  console.error(err);
   return err;
 }
 
