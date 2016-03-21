@@ -24,6 +24,11 @@ are required.
 Optional variables:
 
 * `COUCH2PG_DOC_LIMIT`: maximum number of full documents to request and download from couch during any particular iterative run. this is useful to avoid out of memory errors. Must be balanced properly with `COUCH2PG_SLEEP_MINS` to keep up with new data but not overload.
+* `COUCH2PG_DEBUG`: set this to anything to get more output.
+
+## Example usage
+
+Run `node index`
 
 ## couch2pg
 
@@ -45,6 +50,10 @@ Run `node libs/couch2pg/mainloop`.
 ## xmlforms
 
 Create table representations of OpenRosa/XForms data in PostgreSQL.
+
+### Example usage
+
+Run `node libs/xmlforms/main`.
 
 ### Process
 
