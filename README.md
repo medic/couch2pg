@@ -58,7 +58,7 @@ Run `node libs/xmlforms/main`.
 ### Process
 
 1. contacts
-  1. Make sure version is between 0.6 or 2.6.
+  1. Make sure version is either 0.6 or 2.6.
   1. Determine if contacts have been generated.
   1. If version .6 and contacts missing, create contacts framework.
 1. form reports
