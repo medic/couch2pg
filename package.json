@@ -8,21 +8,21 @@
     "url": "git://github.com/medic/medic-analytics.git"
   },
   "dependencies": {
-    "pg": "4.4.0",
-    "pg-format": "^1.0.2",
-    "pg-promise": "0.9.8",
-    "rsvp": "3.0.18",
-    "pixl-xml": "1.0.1"
+    "pg": "^4.0.0",
+    "pg-format": "^1.0.0",
+    "pg-promise": "^3.0.0",
+    "rsvp": "^3.0.0",
+    "pixl-xml": "^1.0.0"
   },
   "devDependencies": {
     "chai": "^3.0.0",
-    "chai-as-promised": "^5.1.0",
-    "grunt": "^0.4.5",
-    "grunt-contrib-jshint": "^0.11.2",
-    "grunt-mocha-test": "^0.12.7",
-    "mocha": "^2.2.5",
-    "nock": "^3.6.0",
-    "request": "^2.67.0",
-    "grunt-cli": "^0.1.13"
+    "chai-as-promised": "^5.0.0",
+    "grunt": "^0.4.0",
+    "grunt-contrib-jshint": "^1.0.0",
+    "grunt-mocha-test": "^0.12.0",
+    "mocha": "^2.0.0",
+    "nock": "^7.0.0",
+    "request": "^2.0.0",
+    "grunt-cli": "^1.0.0"
   }
 }
