@@ -4,28 +4,26 @@ var handleReject = require('../common').handleReject;
 exports.extractFromCouchDump = function(dataString) {
   return new Promise(function (resolve) {
     var data = JSON.parse(dataString);
-    var docs = [];
-    data.rows.forEach(function (row) {
+    return resolve(data.rows.map(function (row) {
       // add placeholder for UUIDs with no doc (should such a thing exist)
       if (row.doc === undefined) {
         // placeholder in postgres to not fetch it every time.
-        docs.push({ '_id': row.id, '_rev': row.value.rev, 'type': 'no doc' });
+        return { '_id': row.id, '_rev': row.value.rev, 'type': 'no doc' };
       } else {
-        docs.push(row.doc);
+        return row.doc;
       }
-    });
-    return resolve(docs);
+    }));
   });
 };
 
 exports.extractUUIDFromCouchDump = function(dataString) {
   return new Promise(function (resolve) {
     var data = JSON.parse(dataString);
-    var uuids = {'keys': []};
-    data.rows.forEach(function (row) {
-      uuids.keys.push(row.id);
+    return resolve({
+      'keys': data.rows.map(function (row) {
+                return row.id;
+              })
     });
-    return resolve(uuids);
   });
 };
 
