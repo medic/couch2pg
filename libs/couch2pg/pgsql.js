@@ -24,7 +24,7 @@ exports.checkTableSyntax = function() {
 
 exports.insertIntoColumn = function(data) {
   var c = getFromEnv();
-  return scrub('INSERT INTO %I (%I) VALUES (%L::jsonb);', c.jsonTable, c.jsonCol, data.toString());
+  return scrub('INSERT INTO %I (%I) VALUES %L;', c.jsonTable, c.jsonCol, data);
 };
 
 exports.fetchEntries = function () {

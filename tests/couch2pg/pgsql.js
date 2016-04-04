@@ -8,9 +8,19 @@ var good = {
  'column': '2d8b450f',
  'data': 'd22e9511'
 };
+var goodList = [
+  ['dfc242a5'],
+  ['d22e9511'],
+  ['838a581e']
+];
 var bad = 'injection"; SELECT \'do bad things\'; \\echo';
+var badList = [
+  ['dfc242a5'],
+  ['injection"; SELECT \'do bad things\'; \\echo'],
+  ['838a581e']
+];
 var escapeBadId = '"injection""; SELECT \'do bad things\'; \\echo"';
-var escapeBadLit = 'E\'injection"; SELECT \'\'do bad things\'\'; \\\\echo\'::jsonb';
+var escapeBadLit = 'E\'injection"; SELECT \'\'do bad things\'\'; \\\\echo\'';
 var envTable = 'POSTGRESQL_TABLE';
 var envColumn = 'POSTGRESQL_COLUMN';
 
@@ -32,10 +42,10 @@ function testWith(funcName, condition, hasData) {
     response = pgsql[funcName]();
   }
   if (hasData === 'hasData' && condition !== 'badData') {
-    response = pgsql[funcName](good.data);
+    response = pgsql[funcName](goodList);
   }
   if (hasData === 'hasData' && condition === 'badData') {
-    response = pgsql[funcName](bad);
+    response = pgsql[funcName](badList);
   }
 
   var expected;
@@ -66,7 +76,8 @@ describe('couch2pg SQL', function() {
     process.env[envColumn] = original.column;
   });
 
-  ['createTable', 'addColumnToTable', 'checkTableSyntax', 'fetchEntries']
+  ['createTable', 'addColumnToTable', 'checkTableSyntax', 'fetchEntries',
+   'insertIntoColumn']
     .forEach(function (funcName) {
 
       describe(funcName + '()', function() {
@@ -91,27 +102,11 @@ describe('couch2pg SQL', function() {
 
    }); // forEach
 
-   // separated because takes data parameter
+   // additional testing for data as a list of lists
    describe('insertIntoColumn()', function() {
-
-     it('returns env table', function() {
-       return testWith('insertIntoColumn', 'goodTable', 'hasData');
-     });
-
-     it('returns env column', function() {
-       return testWith('insertIntoColumn', 'goodColumn', 'hasData');
-     });
 
      it('returns passed data', function() {
        return testWith('insertIntoColumn', 'goodData', 'hasData');
-     });
-
-     it('escapes bad table', function() {
-       return testWith('insertIntoColumn', 'badTable', 'hasData');
-     });
-
-     it('escapes bad column', function() {
-       return testWith('insertIntoColumn', 'badColumn', 'hasData');
      });
 
      it('escapes bad data', function() {

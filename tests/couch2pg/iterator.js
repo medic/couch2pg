@@ -393,10 +393,23 @@ describe('iterator of couchdb data', function() {
       });
     });
 
-    it('calls db.query to INSERT each object', function() {
+    // rather than build the full query, truncate it at the data
+    it('passes expected query initial clause', function() {
+      var dummyquery = pgsql.insertIntoColumn('!!!');
+      var clause = dummyquery.split('!!!')[0];
+      return expect(submitted).to.contain(clause);
+    });
+
+    it('passes expected query final clause', function() {
+      var dummyquery = pgsql.insertIntoColumn('!!!');
+      var clause = dummyquery.split('!!!')[1];
+      return expect(submitted).to.contain(clause);
+    });
+
+    it('includes each object', function() {
       var counter = 0;
       objectFixtures.forEach(function (thisFixture) {
-        if (submitted.indexOf(pgsql.insertIntoColumn(JSON.stringify(thisFixture))) >= 0) {
+        if (submitted.indexOf(JSON.stringify(thisFixture)) >= 0) {
           counter = counter + 1;
         }
       });

@@ -1,5 +1,4 @@
 var Promise = require('../common').Promise;
-var handleReject = require('../common').handleReject;
 
 exports.extractFromCouchDump = function(dataString) {
   return new Promise(function (resolve) {
@@ -53,20 +52,12 @@ exports.skipExistingInPG = function(db, pgsql, docsInCouch) {
 };
 
 exports.insertListToPG = function(db, pgsql, dataList) {
-  return new Promise(function (resolve, reject) {
-    // create a base accepting promise for an iterative promise chain
-    var queries = new Promise(function (iresolve) { iresolve(); });
-    dataList.forEach(function (datum) {
-      queries = queries.then(function () {
-        var docstr = JSON.stringify(datum);
-        return db.query(pgsql.insertIntoColumn(docstr));
-      }, handleReject(reject));
-    });
-    // only resolve when the queries complete
-    queries.then(function () {
-      return resolve();
-    }, handleReject(reject));
-  });
+  // pass a list of lists of items onto the database function
+  return db.query(pgsql.insertIntoColumn(dataList.map(function (datum) {
+    // stringify each item of the dataList to JSON
+    // each value is a list of one field
+    return [JSON.stringify(datum)];
+  })));
 };
 
 exports.reduceUUIDs = function(UUIDlist, limit) {
