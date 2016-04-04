@@ -403,12 +403,6 @@ describe('iterator of couchdb data', function() {
       return expect(counter).to.equal(objectFixtures.length);
     });
 
-    /* No known materialized views yet
-    it('refreshes all known materialized views', function() {
-      return expect(false).to.be.true;
-    });
-    */
-
     // TODO what behavior should occur if db.query fails?
 
   });
