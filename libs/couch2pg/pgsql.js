@@ -9,7 +9,7 @@ function getFromEnv() {
 
 exports.createTable = function() {
   var c = getFromEnv();
-  return scrub('CREATE TABLE %I (%I jsonb);', c.jsonTable, c.jsonCol);
+  return scrub('CREATE TABLE %I (%I jsonb); CREATE INDEX %I ON %I ( (%I->>\'_id\') ); CREATE INDEX %I ON %I ( (%I->>\'type\') ); CREATE INDEX %I ON %I USING GIN ( (%I->\'_attachments\') );', c.jsonTable, c.jsonCol, [c.jsonTable, c.jsonCol, 'uuid'].join('_'), c.jsonTable, c.jsonCol, [c.jsonTable, c.jsonCol, 'type'].join('_'), c.jsonTable, c.jsonCol, [c.jsonTable, c.jsonCol, 'attachments'].join('_'), c.jsonTable, c.jsonCol);
 };
 
 exports.addColumnToTable = function() {
