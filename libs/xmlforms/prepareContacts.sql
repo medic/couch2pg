@@ -6,7 +6,7 @@ CREATE MATERIALIZED VIEW contactview_metadata AS
 SELECT data->>'_id' AS uuid, data->>'name' AS name, data->>'type' AS type, data#>>'{contact,_id}' AS contact_uuid, data#>>'{parent,_id}' AS parent_uuid, data->>'notes' AS notes,
 TIMESTAMP WITH TIME ZONE 'epoch' + (data->>'reported_date')::numeric / 1000 * interval '1 second' AS reported
 FROM raw_contacts ;
-CREATE INDEX contactview_metadata_uuid ON contactview_metadata (uuid);
+CREATE UNIQUE INDEX contactview_metadata_uuid ON contactview_metadata (uuid);
 CREATE INDEX contactview_metadata_contact_uuid ON contactview_metadata (contact_uuid);
 CREATE INDEX contactview_metadata_parent_uuid ON contactview_metadata (parent_uuid);
 CREATE INDEX contactview_metadata_type ON contactview_metadata (type);
@@ -37,7 +37,7 @@ FROM contactview_person_fields AS pplfields
 INNER JOIN contactview_metadata AS chw ON (chw.uuid = pplfields.uuid)
 INNER JOIN contactview_metadata AS chwarea ON (chw.parent_uuid = chwarea.uuid)
 WHERE pplfields.parent_type = 'health_center';
-CREATE INDEX contactview_chw_uuid ON contactview_chw (uuid);
+CREATE UNIQUE INDEX contactview_chw_uuid ON contactview_chw (uuid);
 
 -- make a view for clinics and cache it
 CREATE MATERIALIZED VIEW contactview_clinic AS
@@ -46,6 +46,7 @@ FROM contactview_metadata AS cmd
 INNER JOIN contactview_chw AS chw ON (cmd.parent_uuid = chw.area_uuid)
 WHERE type = 'clinic';
 CREATE INDEX contactview_clinic_uuid ON contactview_clinic (uuid);
+CREATE UNIQUE INDEX contactview_clinic_unique ON contactview_clinic (uuid, chw_uuid);
 
 -- make a view for clinic contacts and cache it
 CREATE MATERIALIZED VIEW contactview_clinic_person AS
@@ -53,7 +54,7 @@ SELECT person.name, pplfields.*, person.parent_uuid AS family_uuid
 FROM contactview_person_fields AS pplfields
 INNER JOIN contactview_metadata AS person ON (person.uuid = pplfields.uuid)
 WHERE person.uuid IN (SELECT contact_uuid FROM contactview_metadata WHERE type = 'clinic');
-CREATE INDEX contactview_clinic_person_uuid ON contactview_clinic_person (uuid);
+CREATE UNIQUE INDEX contactview_clinic_person_uuid ON contactview_clinic_person (uuid);
 
 -- a function to refresh all materialized views
 CREATE FUNCTION refresh_matviews() RETURNS INTEGER AS $$
@@ -63,14 +64,14 @@ BEGIN
   RAISE NOTICE 'Refreshing base metaviews';
   -- other matviews rely on contactview_metadata, which is a matview
   -- so load this first
-  REFRESH MATERIALIZED VIEW contactview_metadata;
+  REFRESH MATERIALIZED VIEW CONCURRENTLY contactview_metadata;
   FOR matview IN SELECT matviewname FROM pg_catalog.pg_matviews LOOP
     IF matview.matviewname = 'contactview_metadata' THEN
       -- this one is already done, skip it.
       CONTINUE;
     END IF;
     RAISE NOTICE 'Refreshing %', matview.matviewname;
-    EXECUTE format('REFRESH MATERIALIZED VIEW %I', matview.matviewname);
+    EXECUTE format('REFRESH MATERIALIZED VIEW CONCURRENTLY %I', matview.matviewname);
   END LOOP;
   RAISE NOTICE 'Materialized views refreshed.';
   RETURN 1;
