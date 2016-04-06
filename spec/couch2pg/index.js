@@ -198,3 +198,26 @@ describe('full import', function() {
   });
 
 });
+
+// do iterative step again but nothing should change
+describe('when couchdb has no new data', function() {
+  before(function (done) {
+    run_pre_tasks(done, function () {
+      // no limit to docs for iterative step
+      return '';
+    });
+  });
+
+  it('row count remains the same as total docs', function (done) {
+    // compare couchdb doc count (stored in env) to postgres rows.
+    db.one(countQueryStr).then(function (row) {
+      var docs = parseInt(row.count);
+      expect(docs).to.equal(n_docs);
+    }, function (err) {
+      done(err);
+    }).then(done, function (err) {
+      done(err);
+    });
+  });
+
+});

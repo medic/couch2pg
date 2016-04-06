@@ -52,6 +52,10 @@ exports.skipExistingInPG = function(db, pgsql, docsInCouch) {
 };
 
 exports.insertListToPG = function(db, pgsql, dataList) {
+  if (dataList.length === 0) {
+    // NOOP if there's no data to insert.
+    return new Promise(function (resolve) { return resolve(); });
+  }
   // pass a list of lists of items onto the database function
   return db.query(pgsql.insertIntoColumn(dataList.map(function (datum) {
     // stringify each item of the dataList to JSON

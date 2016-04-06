@@ -371,52 +371,85 @@ describe('iterator of couchdb data', function() {
   });
 
   describe('insertListToPG()', function() {
-    var db;
-    var promise;
-    var submitted;
 
-    before(function(done) {
-      submitted = '';
-      db = {'query': function(sql) {
-        submitted = submitted + sql.toString();
-        // accept anything passed
-        return new Promise(function (resolve) {
-          resolve();
+    describe('with data', function() {
+      var db;
+      var promise;
+      var submitted;
+
+      before(function(done) {
+        submitted = '';
+        db = {'query': function(sql) {
+          submitted = submitted + sql.toString();
+          // accept anything passed
+          return new Promise(function (resolve) {
+            resolve();
+          });
+        }};
+
+        promise = couchiter.insertListToPG(db, pgsql, objectFixtures);
+        promise.finally(function () {
+          // execute tests only after the promise has completed one way
+          // or the other.
+          done();
         });
-      }};
-
-      promise = couchiter.insertListToPG(db, pgsql, objectFixtures);
-      promise.finally(function () {
-        // execute tests only after the promise has completed one way
-        // or the other.
-        done();
       });
-    });
 
-    // rather than build the full query, truncate it at the data
-    it('passes expected query initial clause', function() {
-      var dummyquery = pgsql.insertIntoColumn('!!!');
-      var clause = dummyquery.split('!!!')[0];
-      return expect(submitted).to.contain(clause);
-    });
-
-    it('passes expected query final clause', function() {
-      var dummyquery = pgsql.insertIntoColumn('!!!');
-      var clause = dummyquery.split('!!!')[1];
-      return expect(submitted).to.contain(clause);
-    });
-
-    it('includes each object', function() {
-      var counter = 0;
-      objectFixtures.forEach(function (thisFixture) {
-        if (submitted.indexOf(JSON.stringify(thisFixture)) >= 0) {
-          counter = counter + 1;
-        }
+      // rather than build the full query, truncate it at the data
+      it('passes expected query initial clause', function() {
+        var dummyquery = pgsql.insertIntoColumn('!!!');
+        var clause = dummyquery.split('!!!')[0];
+        return expect(submitted).to.contain(clause);
       });
-      return expect(counter).to.equal(objectFixtures.length);
+
+      it('passes expected query final clause', function() {
+        var dummyquery = pgsql.insertIntoColumn('!!!');
+        var clause = dummyquery.split('!!!')[1];
+        return expect(submitted).to.contain(clause);
+      });
+
+      it('includes each object', function() {
+        var counter = 0;
+        objectFixtures.forEach(function (thisFixture) {
+          if (submitted.indexOf(JSON.stringify(thisFixture)) >= 0) {
+            counter = counter + 1;
+          }
+        });
+        return expect(counter).to.equal(objectFixtures.length);
+      });
+
+      // TODO what behavior should occur if db.query fails?
     });
 
-    // TODO what behavior should occur if db.query fails?
+    describe('with no data', function() {
+      var db;
+      var promise;
+      var submitted;
+
+      before(function(done) {
+        submitted = '';
+        db = {'query': function(sql) {
+          submitted = submitted + sql.toString();
+          // accept anything passed
+          return new Promise(function (resolve) {
+            resolve();
+          });
+        }};
+
+        promise = couchiter.insertListToPG(db, pgsql, []);
+        promise.finally(function () {
+          // execute tests only after the promise has completed one way
+          // or the other.
+          done();
+        });
+      });
+
+      // rather than build the full query, truncate it at the data
+      it('does not call the database', function() {
+        return expect(submitted).to.equal('');
+      });
+
+    });
 
   });
 
