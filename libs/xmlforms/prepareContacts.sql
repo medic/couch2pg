@@ -48,13 +48,26 @@ WHERE type = 'clinic';
 CREATE INDEX contactview_clinic_uuid ON contactview_clinic (uuid);
 CREATE UNIQUE INDEX contactview_clinic_unique ON contactview_clinic (uuid, chw_uuid);
 
--- make a view for clinic contacts and cache it
-CREATE MATERIALIZED VIEW contactview_clinic_person AS
-SELECT person.name, pplfields.*, person.parent_uuid AS family_uuid
-FROM contactview_person_fields AS pplfields
-INNER JOIN contactview_metadata AS person ON (person.uuid = pplfields.uuid)
-WHERE person.uuid IN (SELECT contact_uuid FROM contactview_metadata WHERE type = 'clinic');
-CREATE UNIQUE INDEX contactview_clinic_person_uuid ON contactview_clinic_person (uuid);
+-- make a view for clinic contacts
+CREATE VIEW contactview_clinic_person AS
+SELECT
+  raw_contacts.data ->> '_id' AS uuid,
+  raw_contacts.data ->> 'name' AS name, raw_contacts.data ->> 'type' AS type,
+  raw_contacts.data #>> '{contact,_id}' AS contact_uuid,
+  raw_contacts.data #>> '{parent,_id}' AS parent_uuid,
+  raw_contacts.data ->> 'notes' AS notes,
+  -- add epoch
+  '1970-01-01 00:00:00+00'::timestamp with time zone +
+    -- to the reported_date ms since epoch
+    (((raw_contacts.data ->> 'reported_date')::numeric) / 1000) *
+    -- converted into seconds
+    '00:00:01'::interval AS reported,
+  raw_contacts.data ->> 'phone' AS phone,
+  raw_contacts.data ->> 'alternative_phone' AS phone2,
+  raw_contacts.data ->> 'date_of_birth' AS date_of_birth,
+  raw_contacts.data #>> '{parent,type}' AS parent_type
+FROM raw_contacts
+WHERE (raw_contacts.data ->> 'type') = 'person';
 
 -- a function to refresh all materialized views
 CREATE FUNCTION refresh_matviews() RETURNS INTEGER AS $$
