@@ -30,7 +30,7 @@ FROM raw_contacts
 WHERE data->>'type' = 'person';
 
 -- make a view for CHWs
-CREATE MATERIALIZED VIEW contactview_chw AS
+CREATE VIEW contactview_chw AS
 SELECT chw.name, pplfields.*, chwarea.uuid AS area_uuid,
 chwarea.parent_uuid AS branch_uuid
 FROM contactview_person_fields AS pplfields
@@ -39,8 +39,8 @@ INNER JOIN contactview_metadata AS chwarea ON (chw.parent_uuid = chwarea.uuid)
 WHERE pplfields.parent_type = 'health_center';
 CREATE UNIQUE INDEX contactview_chw_uuid ON contactview_chw (uuid);
 
--- make a view for clinics and cache it
-CREATE MATERIALIZED VIEW contactview_clinic AS
+-- make a view for clinics
+CREATE VIEW contactview_clinic AS
 SELECT cmd.uuid, cmd.name, chw.uuid AS chw_uuid, cmd.reported AS created
 FROM contactview_metadata AS cmd
 INNER JOIN contactview_chw AS chw ON (cmd.parent_uuid = chw.area_uuid)
