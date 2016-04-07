@@ -53,15 +53,7 @@ CREATE VIEW contactview_clinic_person AS
 SELECT
   raw_contacts.data ->> '_id' AS uuid,
   raw_contacts.data ->> 'name' AS name, raw_contacts.data ->> 'type' AS type,
-  raw_contacts.data #>> '{contact,_id}' AS contact_uuid,
-  raw_contacts.data #>> '{parent,_id}' AS parent_uuid,
-  raw_contacts.data ->> 'notes' AS notes,
-  -- add epoch
-  '1970-01-01 00:00:00+00'::timestamp with time zone +
-    -- to the reported_date ms since epoch
-    (((raw_contacts.data ->> 'reported_date')::numeric) / 1000) *
-    -- converted into seconds
-    '00:00:01'::interval AS reported,
+  raw_contacts.data #>> '{parent,_id}' AS family_uuid,
   raw_contacts.data ->> 'phone' AS phone,
   raw_contacts.data ->> 'alternative_phone' AS phone2,
   raw_contacts.data ->> 'date_of_birth' AS date_of_birth,
