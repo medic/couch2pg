@@ -59,7 +59,9 @@ SELECT
   raw_contacts.data ->> 'date_of_birth' AS date_of_birth,
   raw_contacts.data #>> '{parent,type}' AS parent_type
 FROM raw_contacts
-WHERE (raw_contacts.data ->> 'type') = 'person';
+WHERE
+(raw_contacts.data ->> 'type') = 'person' AND
+(raw_contacts.data ->> '_id') IN (SELECT contact_uuid FROM contactview_metadata WHERE type = 'clinic');
 
 -- a function to refresh all materialized views
 CREATE FUNCTION refresh_matviews() RETURNS INTEGER AS $$
