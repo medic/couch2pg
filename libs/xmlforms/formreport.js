@@ -32,6 +32,10 @@ var parseInstanceXML = function(xml) {
   flattaglist = flattaglist.filter(function (el) {
     return el.indexOf('_Attribs') === -1;
   });
+  // remove '/_Data' postfix from any tags which have attributes and data.
+  flattaglist = flattaglist.map(function (el) {
+    return el.split('/_Data')[0];
+  });
   return {
     'formname': formname,
     'jsondata': jsondata,

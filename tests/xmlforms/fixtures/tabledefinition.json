@@ -27,7 +27,12 @@
         "xml": {
           "inputs/meta/location/lat": "0.1234567",
           "inputs/meta/location/long": "12.3456789",
-          "inputs/patient/_id": "9993acc5-90f5-46be-a670-0ca5fe897d25",
+          "inputs/patient/_id": {
+            "_Attribs": {
+              "id": "ignore this"
+            },
+            "_Data": "9993acc5-90f5-46be-a670-0ca5fe897d25"
+          },
           "inputs/patient/name": "Jane Doe",
           "inputs/patient/date_of_birth": "2011-02-14",
           "g_inputs/_id": "",
@@ -54,7 +59,12 @@
           "inputs/patient/_id": "",
           "inputs/patient/name": "",
           "inputs/patient/date_of_birth": "",
-          "g_inputs/_id": "6eb3ade7-07bc-45b3-80a6-227b78fd41b2",
+          "g_inputs/_id": {
+            "_Attribs": {
+              "tag": "also ignore this"
+            },
+            "_Data": "6eb3ade7-07bc-45b3-80a6-227b78fd41b2"
+          },
           "g_inputs/name": "Madame Tout-le-Monde",
           "g_inputs/date_of_birth": "2014-11-02",
           "outputs/stuff": "",
