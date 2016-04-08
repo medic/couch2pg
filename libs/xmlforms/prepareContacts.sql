@@ -37,7 +37,6 @@ FROM contactview_person_fields AS pplfields
 INNER JOIN contactview_metadata AS chw ON (chw.uuid = pplfields.uuid)
 INNER JOIN contactview_metadata AS chwarea ON (chw.parent_uuid = chwarea.uuid)
 WHERE pplfields.parent_type = 'health_center';
-CREATE UNIQUE INDEX contactview_chw_uuid ON contactview_chw (uuid);
 
 -- make a view for clinics
 CREATE VIEW contactview_clinic AS
@@ -45,8 +44,6 @@ SELECT cmd.uuid, cmd.name, chw.uuid AS chw_uuid, cmd.reported AS created
 FROM contactview_metadata AS cmd
 INNER JOIN contactview_chw AS chw ON (cmd.parent_uuid = chw.area_uuid)
 WHERE type = 'clinic';
-CREATE INDEX contactview_clinic_uuid ON contactview_clinic (uuid);
-CREATE UNIQUE INDEX contactview_clinic_unique ON contactview_clinic (uuid, chw_uuid);
 
 -- make a view for clinic contacts
 CREATE VIEW contactview_clinic_person AS
