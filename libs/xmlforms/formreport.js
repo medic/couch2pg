@@ -28,13 +28,13 @@ var parseInstanceXML = function(xml) {
   jsondata = jsondata[formname];
   // flatten the leaf tags
   var flattaglist = Object.keys(flattenObj(jsondata, {}));
-  // filter out anything containing `_Attribs`. tag attributes not needed.
+  // filter out any root `_Attribs`. root attributes not needed.
   flattaglist = flattaglist.filter(function (el) {
-    return el.indexOf('_Attribs') === -1;
+    return el.indexOf('_Attribs') !== 0;
   });
-  // remove '/_Data' postfix from any tags which have attributes and data.
+  // remove '/_Data' or '/_Attribs' postfixes
   flattaglist = flattaglist.map(function (el) {
-    return el.split('/_Data')[0];
+    return el.split('/_Data')[0].split('/_Attribs')[0];
   });
   return {
     'formname': formname,

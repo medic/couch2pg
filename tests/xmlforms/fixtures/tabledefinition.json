@@ -39,7 +39,11 @@
           "g_inputs/name": "",
           "g_inputs/date_of_birth": "",
           "outputs/stuff": "things",
-          "random_thing": "",
+          "random_thing": {
+            "_Attribs": {
+              "id": "dont break"
+            }
+          },
           "different_random_thing": "with contents!",
           "group_bananas/useful_tag": "",
           "group_bananas/question": "answer",
@@ -136,7 +140,11 @@
           "g_inputs/name": "Madame Tout-le-Monde",
           "g_inputs/date_of_birth": "2014-11-02",
           "outputs/saltines": "too many carbs",
-          "outputs/deeply/nested/field": "",
+          "outputs/deeply/nested/field": {
+            "_Attribs": {
+              "tag": "no data"
+            }
+          },
           "atag": "10",
           "btag": "11",
           "ctag": "",

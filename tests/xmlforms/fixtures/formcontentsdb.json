@@ -4,7 +4,7 @@
     "chw": "07f078b2-841b-4c58-856b-30c4751bee1f",
     "area": "667658f5-cc55-46fe-8843-99d99bc37d9d",
     "reported": "1455875033",
-    "xml": " <formname id=\"formname\" version=\"1970-01-01\"> <inputs> <meta> <location> <lat>0.1234567</lat> <long>12.3456789</long> </location> </meta> <patient> <_id id=\"ignore this\">9993acc5-90f5-46be-a670-0ca5fe897d25</_id> <name>Jane Doe</name> <date_of_birth>2011-02-14</date_of_birth> </patient> </inputs> <g_inputs> <_id/> <name/> <date_of_birth/> </g_inputs> <outputs> <stuff>things</stuff> </outputs> <random_thing/> <different_random_thing>with contents!</different_random_thing> <group_bananas> <useful_tag/> <question>answer</question> </group_bananas> </formname> "
+    "xml": " <formname id=\"formname\" version=\"1970-01-01\"> <inputs> <meta> <location> <lat>0.1234567</lat> <long>12.3456789</long> </location> </meta> <patient> <_id id=\"ignore this\">9993acc5-90f5-46be-a670-0ca5fe897d25</_id> <name>Jane Doe</name> <date_of_birth>2011-02-14</date_of_birth> </patient> </inputs> <g_inputs> <_id/> <name/> <date_of_birth/> </g_inputs> <outputs> <stuff>things</stuff> </outputs> <random_thing id=\"dont break\"/> <different_random_thing>with contents!</different_random_thing> <group_bananas> <useful_tag/> <question>answer</question> </group_bananas> </formname> "
   },
   {
     "uuid": "6eb3ade7-07bc-45b3-80a6-227b78fd41b2",
@@ -25,6 +25,6 @@
     "chw": "880c4deb-9413-4419-9413-bf2e87c8a0a2",
     "area": "1e188b55-e0f5-4c38-86bf-067a2f676c1f",
     "reported": "1457803817",
-    "xml": " <otherform id=\"otherform\" version=\"2000-01-01\"> <inputs> <meta> <location> <lat>1.2345678</lat> <long>23.4567890</long> </location> </meta> <patient> <_id/> <name/> <date_of_birth/> </patient> </inputs> <g_inputs> <_id>bd915cfd-d724-40a8-91a7-f87197d01632</_id> <name>Madame Tout-le-Monde</name> <date_of_birth>2014-11-02</date_of_birth> </g_inputs> <outputs> <saltines>too many carbs</saltines> <deeply> <nested> <field/> </nested> </deeply> </outputs> <atag>10</atag> <btag>11</btag> <ctag/> </otherform> "
+    "xml": " <otherform id=\"otherform\" version=\"2000-01-01\"> <inputs> <meta> <location> <lat>1.2345678</lat> <long>23.4567890</long> </location> </meta> <patient> <_id/> <name/> <date_of_birth/> </patient> </inputs> <g_inputs> <_id>bd915cfd-d724-40a8-91a7-f87197d01632</_id> <name>Madame Tout-le-Monde</name> <date_of_birth>2014-11-02</date_of_birth> </g_inputs> <outputs> <saltines>too many carbs</saltines> <deeply> <nested> <field tag=\"no data\"/> </nested> </deeply> </outputs> <atag>10</atag> <btag>11</btag> <ctag/> </otherform> "
   }
 ]
