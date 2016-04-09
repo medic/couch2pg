@@ -95,9 +95,19 @@ exports.fetchAndParseReports = function(db, pgsql) {
       flatxml.fields.forEach(function (field) {
         // use single strings to resolve deeply nested properties
         // adapted from http://stackoverflow.com/a/22129960/1867779
-        xmldict[field] = field.split('/').reduce(function(prev, curr) {
+        var data = field.split('/').reduce(function(prev, curr) {
           return  prev ? prev[curr] : undefined;
         }, flatxml.jsondata);
+        // handle when tags have properties
+        if (data._Attribs !== undefined && data._Data === undefined) {
+          // if _Attribs but no _Data, then this is a blank tag
+          data = '';
+        }
+        if (data._Attribs !== undefined && data._Data !== undefined) {
+          // if _Attribs and _Data contains something, and _Data is what we want
+          data = data._Data;
+        }
+        xmldict[field] = data;
       });
 
       // inject special xmlforms_uuid field so that the form's UUID as
