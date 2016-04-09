@@ -27,23 +27,14 @@
         "xml": {
           "inputs/meta/location/lat": "0.1234567",
           "inputs/meta/location/long": "12.3456789",
-          "inputs/patient/_id": {
-            "_Attribs": {
-              "id": "ignore this"
-            },
-            "_Data": "9993acc5-90f5-46be-a670-0ca5fe897d25"
-          },
+          "inputs/patient/_id": "9993acc5-90f5-46be-a670-0ca5fe897d25",
           "inputs/patient/name": "Jane Doe",
           "inputs/patient/date_of_birth": "2011-02-14",
           "g_inputs/_id": "",
           "g_inputs/name": "",
           "g_inputs/date_of_birth": "",
           "outputs/stuff": "things",
-          "random_thing": {
-            "_Attribs": {
-              "id": "dont break"
-            }
-          },
+          "random_thing": "",
           "different_random_thing": "with contents!",
           "group_bananas/useful_tag": "",
           "group_bananas/question": "answer",
@@ -63,12 +54,7 @@
           "inputs/patient/_id": "",
           "inputs/patient/name": "",
           "inputs/patient/date_of_birth": "",
-          "g_inputs/_id": {
-            "_Attribs": {
-              "tag": "also ignore this"
-            },
-            "_Data": "6eb3ade7-07bc-45b3-80a6-227b78fd41b2"
-          },
+          "g_inputs/_id": "6eb3ade7-07bc-45b3-80a6-227b78fd41b2",
           "g_inputs/name": "Madame Tout-le-Monde",
           "g_inputs/date_of_birth": "2014-11-02",
           "outputs/stuff": "",
@@ -140,11 +126,7 @@
           "g_inputs/name": "Madame Tout-le-Monde",
           "g_inputs/date_of_birth": "2014-11-02",
           "outputs/saltines": "too many carbs",
-          "outputs/deeply/nested/field": {
-            "_Attribs": {
-              "tag": "no data"
-            }
-          },
+          "outputs/deeply/nested/field": "",
           "atag": "10",
           "btag": "11",
           "ctag": "",
