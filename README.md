@@ -67,6 +67,8 @@ schema to other roles, and then set `no_delete` default permissions:
 ```
 CREATE ROLE no_delete;
 CREATE SCHEMA static;
+GRANT USAGE, CREATE ON SCHEMA static TO no_delete;
+GRANT USAGE ON SCHEMA static TO read_only;
 SET ROLE no_delete;
 ALTER DEFAULT PRIVILEGES IN SCHEMA static GRANT ALL ON TABLES TO no_delete;
 ALTER DEFAULT PRIVILEGES IN SCHEMA static GRANT SELECT ON TABLES TO read_only;
