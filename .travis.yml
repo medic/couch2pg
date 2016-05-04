@@ -7,8 +7,8 @@ node_js:
 env:
   global:
     - POSTGRESQL_URL="postgres://postgres@localhost:5432/medicdata"
-    - POSTGRESQL_TABLE="couchdata"
-    - POSTGRESQL_COLUMN="jsondata"
+    - POSTGRESQL_TABLE="couchdb"
+    - POSTGRESQL_COLUMN="doc"
     - COUCHDB_URL="http://localhost:5984/medic/_all_docs"
 
 sudo: required
@@ -20,6 +20,7 @@ addons:
    postgresql: "9.4"
 
 before_script:
+   - psql -c "CREATE ROLE full_access;" -U postgres
    - psql -c "CREATE DATABASE medicdata WITH OWNER postgres;" -U postgres
 
 script:

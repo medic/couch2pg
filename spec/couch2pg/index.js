@@ -17,6 +17,7 @@ var pgtab = process.env.POSTGRESQL_TABLE;
 var queryStr = scrub('SELECT %I FROM %I WHERE %I->>\'_id\' = %%L AND %I->>\'_rev\' = %%L;', pgcol, pgtab, pgcol, pgcol);
 var appQueryStr = scrub('SELECT %I->\'app_settings\'->\'schedules\'->0->\'messages\' FROM %I WHERE %I->\'app_settings\'->\'schedules\'->0 ? \'messages\';', pgcol, pgtab, pgcol);
 var countQueryStr = scrub('SELECT COUNT(%I) FROM %I;', pgcol, pgtab);
+var whoOwns = scrub('SELECT tableowner FROM pg_catalog.pg_tables WHERE tablename=%L', pgtab);
 
 // postgres connection
 var pgp = pgplib({ 'promiseLib': Promise });
@@ -218,6 +219,24 @@ describe('when couchdb has no new data', function() {
     }).then(done, function (err) {
       done(err);
     });
+  });
+
+});
+
+// ensure SET ROLE is working as desired
+describe('table ownership', function() {
+
+  var capture = '';
+  before(function (done) {
+    db.one(whoOwns).then(function(row) {
+      capture = row.tableowner;
+    }, function (err) {
+      done(err);
+    }).then(done);
+  });
+
+  it('is set as expected', function() {
+    expect(capture).to.equal('full_access');
   });
 
 });

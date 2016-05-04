@@ -26,6 +26,67 @@ Optional variables:
 * `COUCH2PG_DOC_LIMIT`: maximum number of full documents to request and download from couch during any particular iterative run. this is useful to avoid out of memory errors. Must be balanced properly with `COUCH2PG_SLEEP_MINS` to keep up with new data but not overload.
 * `COUCH2PG_DEBUG`: set this to anything to get more output.
 
+## Required database setup
+
+It is assumed PostgreSQL is in use.
+
+### `full_access` role
+
+A role called `full_access` must exist, and the role accessing PostgreSQL must
+either be `full_access` or must have access to `SET ROLE full_access;`. Such
+access can be granted using `GRANT full_access TO <role>;`.
+
+It might be useful to add real users to the `full_access` role as well using
+the same command above.
+
+### `read_only` role
+
+While not required for this software, it is assumed for some use cases that
+there is also a `read_only` role. In such a case, `full_access` should be set
+so that `read_only` is granted read access. While logged in as `full_access`,
+or using `SET ROLE full_access;`, this can be done with the following:
+
+```
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO full_access;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO read_only;
+```
+
+`full_access` should also be able to read anything `read_only` can read. While
+logged in as `read_only` or using `SET ROLE read_only;`, access can be granted
+with `GRANT read_only TO full_access;`.
+
+### `no_delete` role and `static` schema
+
+Again, while not required for this software, it is assumed for some use cases
+that `no_delete` will be used to maintain datasets that should be immutable
+by this adapter and the `full_access` user. This utilizes a schema called
+`static`.
+
+Create the `no_delete` role, create the `static` schema, expose the `static`
+schema to other roles, and then set `no_delete` default permissions:
+```
+CREATE ROLE no_delete;
+CREATE SCHEMA static;
+SET ROLE no_delete;
+ALTER DEFAULT PRIVILEGES IN SCHEMA static GRANT ALL ON TABLES TO no_delete;
+ALTER DEFAULT PRIVILEGES IN SCHEMA static GRANT SELECT ON TABLES TO read_only;
+RESET ROLE;
+```
+
+Here, anything created by `no_delete` is readable by `read_only` (and thus
+`full_access`), meanwhile `full_access` has no write ability in the `static`
+schema.
+
+### Local PostgreSQL testing
+
+If using a local PostgreSQL database, the integration tests can choke if
+the data table already exists.
+
+Between iterations of the integration test, the table must be dropped or
+cleared.
+
+https://github.com/medic/medic-analytics/issues/15
+
 ## Example usage
 
 Run `node index`

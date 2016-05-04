@@ -1,4 +1,4 @@
-var scrub = require('pg-format');
+var scrub = require('../common').scrub;
 
 function getFromEnv() {
   var config = {};
