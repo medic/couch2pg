@@ -1,4 +1,5 @@
 var scrub = require('../common').scrub;
+var format = require('pg-format');
 var fs = require('fs');
 
 function getFromEnv() {
@@ -28,7 +29,7 @@ exports.getFormDefinitionsXML = function() {
 exports.putFormList = function(formlist) {
   // expect formlist to be of the format ['form1', 'form2', ...]
   formlist = formlist.map(function (formname) {
-    return scrub('(%L)', formname);
+    return format('(%L)', formname);
   }).join(',');
   return 'DROP TABLE IF EXISTS form_list; CREATE TABLE form_list (name TEXT); INSERT INTO form_list VALUES ' + formlist;
 };
@@ -59,7 +60,7 @@ exports.putFormViews = function(tabledef) {
     manyQueries += scrub('CREATE TABLE IF NOT EXISTS %I (', tableName);
     // scrub field names and append TEXT type to each
     var fields = tabledef[tableName].map(function (attr) {
-      return scrub('%I', attr) + ' TEXT';
+      return format('%I', attr) + ' TEXT';
     }).join(',');
     // finalize CREATE TABLE
     manyQueries += fields + ');';
