@@ -1,6 +1,7 @@
-var couch2pg = require('./libs/couch2pg/index');
-var xmlforms = require('./libs/xmlforms/index');
-var Promise = require('./libs/common').Promise;
+var couch2pg = require('./libs/couch2pg/index'),
+    xmlforms = require('./libs/xmlforms/index'),
+    postgrator = require('postgrator'),
+    Promise = require('rsvp').Promise;
 
 // convert minutes into ms
 var sleepMins = process.env.COUCH2PG_SLEEP_MINS * 60000;
@@ -18,30 +19,48 @@ var startTime = function() {
   });
 };
 
+var potentiallyMigrateDatabase = function() {
+  return new Promise(function (resolve, reject) {
+    postgrator.setConfig({
+      migrationDirectory: __dirname + '/migrations',
+      driver: 'pg',
+      connectionString: process.env.POSTGRESQL_URL
+    });
+
+    postgrator.migrate('201505271423', function(err, migrations) {
+      if (err) {
+        reject(err);
+      } else {
+        postgrator.endConnection(function() {
+          resolve(migrations);
+        });
+      }
+    });
+  });
+};
+
 var loop = function () {
   var starttime;
   startTime()
     .then(function (time) {
       starttime = time;
     })
-
+    .then(potentiallyMigrateDatabase)
+    .then(function(migrations) {
+      console.log('Sucessfully migrated', migrations);
+    })
     .then(couch2pg)
     .then(function () {
       console.log('Imported successfully at ' + Date());
-    }, function (err) {
-      console.log('Import errored at ' + Date());
-      console.log(err);
     })
-
     .then(xmlforms)
     .then(function () {
       console.log('XML forms completed at ' + Date());
-    }, function (err) {
-      console.log('XML forms errored at ' + Date());
-      console.log(err);
     })
-
-    .then(function () {
+    .catch(function(err) {
+      console.error(err);
+    })
+    .finally(function () {
       console.log('Next run at ' + new Date(starttime.valueOf() + sleepMins));
     });
 };

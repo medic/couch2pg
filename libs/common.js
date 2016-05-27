@@ -1,4 +1,3 @@
-exports.Promise = require('rsvp').Promise;
 var scrub_inner = require('pg-format');
 
 exports.scrub = function() {

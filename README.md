@@ -6,7 +6,7 @@ might extend beyond that.
 
 ## Required Environment Variables
 
-Environment Variables will be used for confiuration. A number of variables
+Environment Variables will be used for configuration. A number of variables
 are required.
 
 * `POSTGRESQL_URL`: a URL used by pg libs to connect to postgres.

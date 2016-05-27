@@ -10,7 +10,6 @@ var Promise = require('../common').Promise;
 var cdbfuncs = require('./cdbfuncs');
 var couchiter = require('./couchiter');
 var pgsql = require('./pgsql');
-var pgfuncs = require('./pgfuncs');
 
 module.exports = function () {
   var sco;
@@ -20,10 +19,6 @@ module.exports = function () {
     .connect()
     .then(function(cnxn) {
       sco = cnxn;
-    })
-  // ensure a table exists to receive JSON data in postgres
-    .then(function() {
-      pgfuncs.initializeDatabase(pgsql, sco);
     })
   // extract all document UUIDs from Couch and convert to objects
     .then(function() {
