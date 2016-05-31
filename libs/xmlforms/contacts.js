@@ -1,4 +1,4 @@
-var Promise = require('../common').Promise;
+var Promise = require('rsvp').Promise;
 
 exports.contactsNeeded = function(db, pgsql) {
   return db.query(pgsql.checkForContacts())

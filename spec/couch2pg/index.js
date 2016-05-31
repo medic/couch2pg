@@ -1,242 +1,211 @@
-var httplib = require('request');
-var pgplib = require('pg-promise');
-var scrub = require('pg-format');
-var url = require('url');
+var INT_PG_HOST = process.env.INT_PG_HOST || 'localhost',
+    INT_PG_PORT = process.env.INT_PG_PORT || 5432,
+    INT_PG_USER = process.env.INT_PG_USER,
+    INT_PG_PASS = process.env.INT_PG_PASS,
+    INT_PG_DB   = process.env.INT_PG_DB || 'medic-analytics-test',
+    INT_COUCHDB_URL = process.env.INT_COUCHDB_URL || 'http://admin:pass@localhost:5984/medic-analytics-test';
 
-var common = require('../../tests/common');
-var expect = common.expect;
-var Promise = common.Promise;
-var handleError = common.handleError;
-var handleReject = common.handleReject;
+process.env.POSTGRESQL_URL = 'postgres://' +
+  (INT_PG_USER ? INT_PG_USER : '') +
+  (INT_PG_PASS ? INT_PG_PASS += ':' + INT_PG_PASS : '') +
+  (INT_PG_USER ? '@' : '') +
+  INT_PG_HOST + ':' + INT_PG_PORT + '/' + INT_PG_DB;
+process.env.COUCHDB_URL = INT_COUCHDB_URL;
 
-var couch2pg = require('../../libs/couch2pg/index');
+var _ = require('underscore'),
+    RSVP = require('rsvp'),
+    common = require('../../tests/common'),
+    expect = common.expect,
+    Promise = RSVP.Promise,
+    pgp = require('pg-promise')({ 'promiseLib': Promise }),
+    format = require('pg-format'),
+    couch2pg = require('../../libs/couch2pg/index'),
+    pouchdb = require('pouchdb');
 
-// prebuild the query string with table and column references
-var pgcol = process.env.POSTGRESQL_COLUMN;
-var pgtab = process.env.POSTGRESQL_TABLE;
-var queryStr = scrub('SELECT %I FROM %I WHERE %I->>\'_id\' = %%L AND %I->>\'_rev\' = %%L;', pgcol, pgtab, pgcol, pgcol);
-var appQueryStr = scrub('SELECT %I->\'app_settings\'->\'schedules\'->0->\'messages\' FROM %I WHERE %I->\'app_settings\'->\'schedules\'->0 ? \'messages\';', pgcol, pgtab, pgcol);
-var countQueryStr = scrub('SELECT COUNT(%I) FROM %I;', pgcol, pgtab);
-var whoOwns = scrub('SELECT tableowner FROM pg_catalog.pg_tables WHERE tablename=%L', pgtab);
+var DOCS_TO_CREATE = 10;
+var DOCS_TO_ADD = 3;
+var DOCS_TO_EDIT = 3;
+var DOCS_TO_DELETE = 3;
 
-// postgres connection
-var pgp = pgplib({ 'promiseLib': Promise });
-var db = pgp(process.env.POSTGRESQL_URL);
+var createPgConnection = function(host, port, user, pass, database) {
+  var options = {
+    host: host,
+    port: port
+  };
+  if (user) {
+    options.user = user;
+  }
+  if (pass) {
+    options.pass = pass;
+  }
+  if (database) {
+    options.database = database;
+  }
 
-// determine how many rows are in the database
-var fetch_rows = new Promise(function (resolve, reject) {
-  // perform a request for no keys to get back only the db doc count
-  httplib.post({
-    url: process.env.COUCHDB_URL,
-    form: '{"keys": []}'
-  }, function (err, httpResponse, body) {
-    if (err) {
-      return handleReject(reject)(err);
-    }
-    return resolve(parseInt(JSON.parse(body).total_rows));
+  return pgp(options);
+};
+
+// drop and re-create couchdb
+var initialiseCouchDb = function() {
+  return pouchdb(INT_COUCHDB_URL).destroy().then(function() {
+    return new Promise(function(res) {
+      res(pouchdb(INT_COUCHDB_URL));
+    });
   });
-});
+};
 
-// helper for preparing the url for another query parameter
-function append_param(url_pieces, param) {
-  if ((url_pieces.search === null) || (url_pieces.search === undefined)) {
-    url_pieces.search = '?';
-  } else {
-    url_pieces.search = url_pieces.search + '&';
-  }
-  url_pieces.search = url_pieces.search + param;
-  return url_pieces;
-}
-
-// verify postgres and couch match!
-function couch_in_postgres(done) {
-  var couchdb_url = process.env.COUCHDB_URL;
-
-  // ensure include_docs=true is added, since this is no longer guaranteed.
-  var url_pieces = url.parse(couchdb_url, true);
-  if (!url_pieces.query.include_docs) {
-    url_pieces = append_param(url_pieces, 'include_docs=true');
-  }
-
-  // modify couch URL to limit docs if necessary
-  if (process.env.COUCH2PG_DOC_LIMIT) {
-      // set the query to limit
-      url_pieces = append_param(url_pieces, 'limit=' + process.env.COUCH2PG_DOC_LIMIT);
-  }
-  // configure the new URL for couch2pg and this test
-  couchdb_url = url.format(url_pieces);
-
-  // fetch all documents out of couch
-  httplib.get({ url: couchdb_url },
-              function (err, httpResponse, buffer) {
-    if (err) {
-      return done(err);
-    }
-
-    // document download completed
-    var data = JSON.parse(buffer);
-    // setup a single connection for a series of thenable queries
-    var sco;
-    var queries = db.connect()
-      .then(function(cnxn) {
-        sco = cnxn;
+// Drop and re-create postgres db
+var initialisePostgresql = function() {
+  var pg = createPgConnection(INT_PG_HOST, INT_PG_PORT, INT_PG_USER, INT_PG_PASS);
+  return pg.query(format('DROP DATABASE %I', INT_PG_DB))
+    .then(function() {}, function() {}) // don't care if it passed or failed
+    .then(function() {
+      return pg.query(format('CREATE DATABASE %I', INT_PG_DB)).then(function() {
+        return new Promise(function(res) {
+          res(createPgConnection(INT_PG_HOST, INT_PG_PORT, INT_PG_USER, INT_PG_PASS, INT_PG_DB));
+        });
       });
-    // iterate over all documents
-    data.rows.forEach(function (row) {
-
-      // confirm each doc is in postgres
-      var uuid = row.id;
-      var rev = row.value.rev;
-      var thisQuery = scrub(queryStr, uuid, rev);
-      // skip design docs
-      if (uuid.slice(0,7) === '_design') { return; }
-      // iterative step: order queries with then
-      queries = queries.then(function () {
-        return sco.query(thisQuery);
-      }, handleError)
-        .then(function(result) {
-          if (result[0] === undefined) {
-            throw Error('cannot find result for query: ' + thisQuery);
-          }
-          var obj = result[0][pgcol];
-          return expect(obj).deep.equals(row.doc);
-        }, handleError);
     });
-    // mark completion when the last promise has returned
-    queries.then(function () {
-        done();
-    }).catch(function (err) {
-      done(err);
-    }).finally(function () {
-      if (sco) {
-        // close the database connection
-        sco.done();
-      }
+};
+
+var randomData = function() {
+  return [
+    _.sample(['happy', 'sad', 'angry', 'scared', 'morose', 'pensive', 'quixotic']),
+    _.sample(['red', 'blue', 'green', 'orange', 'pink', 'mustard', 'vermillion']),
+    _.sample(['cat', 'dog', 'panda', 'tiger', 'ant', 'lemur', 'dugong', 'vontsira'])
+    ].join('-');
+};
+
+var generateRandomDocument = function() {
+  return {
+    data: randomData()
+  };
+};
+
+describe('couch2pg', function() {
+  var couchdb, pgdb;
+
+  var createDocs = function(docs) {
+    return couchdb.bulkDocs(docs).then(function(results) {
+      return _.zip(docs, results).map(function(docAndResult) {
+        // TODO replace with destructuring when node supports it
+        var doc = docAndResult[0];
+        var result = docAndResult[1];
+
+        if (!result.ok) {
+          throw ['Document failed to be saved', result];
+        }
+
+        doc._id = result.id;
+        doc._rev = result.rev;
+
+        return doc;
+      });
     });
-  });
-}
+  };
 
-// track expected docs
-var n_docs;
-
-function run_pre_tasks(done, set_limit) {
-  fetch_rows.then(function (total_rows) {
-    process.env.COUCH2PG_DOC_LIMIT = set_limit(total_rows);
-    // if a limit is set, expect that many docs.
-    // if no limit is set, expect total rows.
-    n_docs = parseInt(process.env.COUCH2PG_DOC_LIMIT || total_rows);
-  }, function (err) {
-    done(err);
-  }).then(couch2pg).then(function () {
-    done();
-  }, function (err) {
-    done(err);
-  });
-}
-
-
-describe('base import of couchdb integration', function() {
-  before(function (done) {
-    run_pre_tasks(done, function (couch_docs) {
-      // limit the initial import to roughly half the existing docs
-      return Math.floor(couch_docs/2);
+  var couchDbDocs = function() {
+    return couchdb.allDocs({
+      include_docs: true
+    }).then(function(results) {
+      return _.pluck(results.rows, 'doc');
     });
-  });
+  };
 
-  it('imports as many docs into rows as specified by DOC_LIMIT', function (done) {
-    // compare couchdb doc count (stored in env) to postgres rows.
-    db.one(countQueryStr).then(function (row) {
-      var docs = parseInt(row.count);
-      expect(docs).to.equal(n_docs);
-    }, function (err) {
-      done(err);
-    }).then(done, function (err) {
-      done(err);
+  var itRunsSuccessfully = function() {
+    return couch2pg.migrate().then(couch2pg.import);
+  };
+
+  var itHasTheSameNumberOfDocs = function() {
+    RSVP.all([
+      pgdb.one('SELECT COUNT(*) FROM couchdb'),
+      couchDbDocs
+    ]).then(function(results) {
+      var pgCount = parseInt(results[0].count),
+          couchCount = results[1].length;
+
+      expect(pgCount).to.equal(couchCount);
     });
-  });
+  };
 
-  it('moves expected non-design documents to postgres', function(done) {
-    couch_in_postgres(done);
-  });
+  var itHasTheSameDocuments = function() {
+    RSVP.all([
+      pgdb.query('SELECT * from couchdb'),
+      couchDbDocs
+    ]).then(function(results) {
+      var pgdocs = _.pluck(results[0], 'doc');
+      var docs = results[1];
 
-});
-
-describe('iterative step of couchdb integration', function() {
-  before(function (done) {
-    run_pre_tasks(done, function () {
-      // no limit to docs for iterative step
-      return '';
+      expect(_.sortBy(pgdocs, '_id')).deep.equals(_.sortBy(docs, '_id'));
     });
+  };
+
+  before(function() {
+    return initialiseCouchDb()
+      .then(function(db) {
+        console.log('Initialised couchdb');
+        couchdb = db;
+        return initialisePostgresql();
+      }).then(function(db) {
+        console.log('Initialised postgres');
+        pgdb = db;
+      });
   });
 
-  it('imports as many rows as there are total docs', function (done) {
-    // compare couchdb doc count (stored in env) to postgres rows.
-    db.one(countQueryStr).then(function (row) {
-      var docs = parseInt(row.count);
-      expect(docs).to.equal(n_docs);
-    }, function (err) {
-      done(err);
-    }).then(done, function (err) {
-      done(err);
+  describe('initial import into postgres', function() {
+    before(function() {
+      return _.range(DOCS_TO_CREATE).map(generateRandomDocument).createDocs;
     });
+
+    it('runs successfully', itRunsSuccessfully);
+    it('has the same number of documents as couch', itHasTheSameNumberOfDocs);
+    it('has the same documents as couch', itHasTheSameDocuments);
   });
+  describe('subsequent creations, updates and deletions', function() {
+    before(function() {
+      return couchDbDocs().then(function(docs) {
+        var deletedDocs = _.sample(docs, DOCS_TO_DELETE);
+        docs = _.difference(docs, deletedDocs);
+        deletedDocs.forEach(function(doc) {
+          doc._deleted = true;
+        });
 
-  it('moves all non-design documents to postgres', function(done) {
-    couch_in_postgres(done);
-  });
+        var updatedDocs = _.sample(docs, DOCS_TO_EDIT);
+        updatedDocs.forEach(function(doc) {
+          doc.data = randomData();
+        });
 
-});
+        var createdDocs =_.range(DOCS_TO_ADD).map(generateRandomDocument);
 
-describe('full import', function() {
+        return couchdb.bulkDocs(deletedDocs)
+        .then(function() {
+          return couchdb.bulkDocs(updatedDocs).then(function(results) {
+            results.forEach(function(result) {
+              var doc = docs.find(function(d) {
+                return d._id === result.id;
+              });
 
-  it('puts a doc with app_settings into postgres', function() {
-    // ideally: fetch app settings from the webapp and compare.
-    // however app settings might change, something to do with defaults.
-    // also good: grab a subset, like schedules and compare those.
-    // there's no obvious API for that yet without grabbing the whole doc.
-    // for now, just make sure the database has a doc with app_settings in it.
-    return expect(db.one(appQueryStr)).to.eventually.be.fulfilled;
-  });
-
-});
-
-// do iterative step again but nothing should change
-describe('when couchdb has no new data', function() {
-  before(function (done) {
-    run_pre_tasks(done, function () {
-      // no limit to docs for iterative step
-      return '';
+              doc._id = result.id;
+              doc._rev = result.rev;
+            });
+          });
+        })
+        .then(function() {
+          return createDocs(createdDocs).then(function(createdDocs) {
+            docs = docs.concat(createdDocs);
+          });
+        });
+      });
     });
+
+
+    it('runs successfully', itRunsSuccessfully);
+    it('has the same number of documents as couch', itHasTheSameNumberOfDocs);
+    it('has the same documents as couch', itHasTheSameDocuments);
   });
-
-  it('row count remains the same as total docs', function (done) {
-    // compare couchdb doc count (stored in env) to postgres rows.
-    db.one(countQueryStr).then(function (row) {
-      var docs = parseInt(row.count);
-      expect(docs).to.equal(n_docs);
-    }, function (err) {
-      done(err);
-    }).then(done, function (err) {
-      done(err);
-    });
+  describe('no change', function() {
+    it('runs successfully', itRunsSuccessfully);
+    it('still has the same number of documents as couch', itHasTheSameNumberOfDocs);
+    it('still has the same documents as couch', itHasTheSameDocuments);
   });
-
-});
-
-// ensure SET ROLE is working as desired
-describe('table ownership', function() {
-
-  var capture = '';
-  before(function (done) {
-    db.one(whoOwns).then(function(row) {
-      capture = row.tableowner;
-    }, function (err) {
-      done(err);
-    }).then(done);
-  });
-
-  it('is set as expected', function() {
-    expect(capture).to.equal('full_access');
-  });
-
 });

@@ -1,51 +1,36 @@
-// move data from couch to postgres.
-var pglib = require('pg-promise');
+var Promise = require('rsvp').Promise,
+    postgrator = require('postgrator'),
+    importer = require('./importer');
 
-// import the correct lib for web content:
-// travis couchdb does not support HTTPS, but prod systems require HTTPS
-var httplib = require('request');
+var COUCHDB_URL  = process.env.COUCHDB_URL,
+    POSTGRESQL_URL = process.env.POSTGRESQL_URL,
+    COUCH2PG_DOC_LIMIT = process.env.COUCH2PG_DOC_LIMIT;
 
-var Promise = require('../common').Promise;
+var couchdb = require('pouchdb')(COUCHDB_URL),
+    db = require('pg-promise')({ 'promiseLib': Promise })(POSTGRESQL_URL);
 
-var cdbfuncs = require('./cdbfuncs');
-var couchiter = require('./couchiter');
-var pgsql = require('./pgsql');
+var exports = module.exports = {};
+exports.import = function() {
+  return importer(db, couchdb, COUCH2PG_DOC_LIMIT).import();
+};
 
-module.exports = function () {
-  var sco;
+exports.migrate = function() {
+  return new Promise(function (resolve, reject) {
+    postgrator.setConfig({
+      migrationDirectory: __dirname + '/migrations',
+      schemaTable: 'couch2pg_migrations',
+      driver: 'pg',
+      connectionString: POSTGRESQL_URL
+    });
 
-  // establish a single connection to postgresql
-  return pglib({ 'promiseLib': Promise })(process.env.POSTGRESQL_URL)
-    .connect()
-    .then(function(cnxn) {
-      sco = cnxn;
-    })
-  // extract all document UUIDs from Couch and convert to objects
-    .then(function() {
-      return cdbfuncs.fetchDocs(httplib, process.env.COUCHDB_URL, false);
-    })
-    .then(couchiter.extractUUIDFromCouchDump)
-  // filter out UUIDs that are already in Postgres
-    .then(function(uuids) {
-      return couchiter.skipExistingInPG(sco, pgsql, uuids);
-    })
-  // reduce total number of UUIDs requested if desired
-    .then(function(uuids) {
-      return couchiter.reduceUUIDs(uuids, process.env.COUCH2PG_DOC_LIMIT);
-    })
-  // extract all missing UUIDs documents from Couch and convert to objects
-    .then(function(uuids) {
-      return cdbfuncs.fetchDocs(httplib, process.env.COUCHDB_URL, true, uuids);
-    })
-    .then(couchiter.extractFromCouchDump)
-  // and push the individual documents into postgres
-    .then(function (documents) {
-      return couchiter.insertListToPG(sco, pgsql, documents);
-    })
-  // close the db connection and other cleanup
-    .finally(function () {
-      if (sco) {
-        sco.done();
+    postgrator.migrate('002', function(err, migrations) {
+      if (err) {
+        reject(err);
+      } else {
+        postgrator.endConnection(function() {
+          resolve(migrations);
+        });
       }
     });
+  });
 };

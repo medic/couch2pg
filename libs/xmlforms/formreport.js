@@ -1,4 +1,4 @@
-var Promise = require('../common').Promise;
+var Promise = require('rsvp').Promise;
 
 var xmleng = require('pixl-xml');
 
@@ -139,7 +139,7 @@ exports.createTables = function(db, pgsql, tableObjects) {
   // takes in objects sorted by table
   // as output from fetchAndParseReports()
   // and creates tables for each
-  
+
   // map tableObjects into
   // { "table": [ fields ], ... }
   var tableFields = {};

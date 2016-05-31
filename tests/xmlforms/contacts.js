@@ -134,7 +134,7 @@ describe('Contacts Handler', function() {
       var result = {};
       before(function (done) {
         // expect return value to be of the format
-        // [{ version: 'xx', 
+        // [{ version: 'xx',
         var this_db = dbgen(callstack, [
           [ {
             'version': '0.6',
@@ -163,7 +163,7 @@ describe('Contacts Handler', function() {
       var result = {};
       before(function (done) {
         // expect return value to be of the format
-        // [{ version: 'xx', 
+        // [{ version: 'xx',
         var this_db = dbgen(callstack, [
           [ {
             'version': '2.6',

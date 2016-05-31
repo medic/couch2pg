@@ -1,16 +1,12 @@
-var fs = require('fs');
-
-var chai = require('chai');
-var chaiAsPromised = require('chai-as-promised');
+var fs = require('fs'),
+    Promise = require('rsvp').Promise,
+    chai = require('chai'),
+    chaiAsPromised = require('chai-as-promised');
 
 chai.config.includeStack = true;
 chai.use(chaiAsPromised);
 
 exports.expect = chai.expect;
-var common = require('../libs/common');
-exports.Promise = common.Promise;
-exports.handleError = common.handleError;
-exports.handleReject = common.handleReject;
 
 exports.dbgen = function(callstack, retval) {
   // callstack should be a list
@@ -24,7 +20,7 @@ exports.dbgen = function(callstack, retval) {
     // store the sql for comparison
     callstack.push(sql);
     // accept anything passed with custom value returned
-    return new common.Promise(function (resolve) {
+    return new Promise(function (resolve) {
       if (counter > retval.length) {
         throw 'Database called more often than expected.';
       }
@@ -37,7 +33,7 @@ exports.dbgen = function(callstack, retval) {
 
 exports.readFixtureFile = function (fixturePath) {
   return function(filename, storage) {
-    return new common.Promise(function (resolve, reject) {
+    return new Promise(function (resolve, reject) {
       fs.readFile(fixturePath + filename, 'utf8', function (err,data) {
         if (err) {
           return reject(err);
