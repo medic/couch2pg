@@ -1,10 +1,10 @@
 -- filter contact docs into one place
-CREATE VIEW raw_contacts AS SELECT * FROM lg WHERE data->>'type' IN ('clinic', 'district_hospital', 'health_center', 'person');
+CREATE VIEW raw_contacts AS SELECT * FROM couchdb WHERE doc->>'type' IN ('clinic', 'district_hospital', 'health_center', 'person');
 
 -- extract JSON data from contact docs and cache it
 CREATE MATERIALIZED VIEW contactview_metadata AS
-SELECT data->>'_id' AS uuid, data->>'name' AS name, data->>'type' AS type, data#>>'{contact,_id}' AS contact_uuid, data#>>'{parent,_id}' AS parent_uuid, data->>'notes' AS notes,
-TIMESTAMP WITH TIME ZONE 'epoch' + (data->>'reported_date')::numeric / 1000 * interval '1 second' AS reported
+SELECT doc->>'_id' AS uuid, doc->>'name' AS name, doc->>'type' AS type, doc#>>'{contact,_id}' AS contact_uuid, doc#>>'{parent,_id}' AS parent_uuid, doc->>'notes' AS notes,
+TIMESTAMP WITH TIME ZONE 'epoch' + (doc->>'reported_date')::numeric / 1000 * interval '1 second' AS reported
 FROM raw_contacts ;
 CREATE UNIQUE INDEX contactview_metadata_uuid ON contactview_metadata (uuid);
 CREATE INDEX contactview_metadata_contact_uuid ON contactview_metadata (contact_uuid);
@@ -23,11 +23,11 @@ WHERE cmd.type = 'district_hospital';
 -- thus no reason to materialize it.
 CREATE VIEW contactview_person_fields AS 
 SELECT
-data->>'_id' AS uuid, data->>'phone' AS phone,
-data->>'alternative_phone' AS phone2, data->>'date_of_birth' AS date_of_birth,
-data#>>'{parent,type}' AS parent_type
+doc->>'_id' AS uuid, doc->>'phone' AS phone,
+doc->>'alternative_phone' AS phone2, doc->>'date_of_birth' AS date_of_birth,
+doc#>>'{parent,type}' AS parent_type
 FROM raw_contacts
-WHERE data->>'type' = 'person';
+WHERE doc->>'type' = 'person';
 
 -- make a view for CHWs
 CREATE VIEW contactview_chw AS
@@ -48,17 +48,17 @@ WHERE type = 'clinic';
 -- make a view for clinic contacts
 CREATE VIEW contactview_clinic_person AS
 SELECT
-  raw_contacts.data ->> '_id' AS uuid,
-  raw_contacts.data ->> 'name' AS name, raw_contacts.data ->> 'type' AS type,
-  raw_contacts.data #>> '{parent,_id}' AS family_uuid,
-  raw_contacts.data ->> 'phone' AS phone,
-  raw_contacts.data ->> 'alternative_phone' AS phone2,
-  raw_contacts.data ->> 'date_of_birth' AS date_of_birth,
-  raw_contacts.data #>> '{parent,type}' AS parent_type
+  raw_contacts.doc ->> '_id' AS uuid,
+  raw_contacts.doc ->> 'name' AS name, raw_contacts.doc ->> 'type' AS type,
+  raw_contacts.doc #>> '{parent,_id}' AS family_uuid,
+  raw_contacts.doc ->> 'phone' AS phone,
+  raw_contacts.doc ->> 'alternative_phone' AS phone2,
+  raw_contacts.doc ->> 'date_of_birth' AS date_of_birth,
+  raw_contacts.doc #>> '{parent,type}' AS parent_type
 FROM raw_contacts
 WHERE
-(raw_contacts.data ->> 'type') = 'person' AND
-(raw_contacts.data ->> '_id') IN (SELECT contact_uuid FROM contactview_metadata WHERE type = 'clinic');
+(raw_contacts.doc ->> 'type') = 'person' AND
+(raw_contacts.doc ->> '_id') IN (SELECT contact_uuid FROM contactview_metadata WHERE type = 'clinic');
 
 -- a function to refresh all materialized views
 CREATE FUNCTION refresh_matviews() RETURNS INTEGER AS $$
