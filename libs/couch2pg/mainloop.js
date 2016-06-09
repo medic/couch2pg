@@ -1,3 +1,4 @@
+//TODO: work out the use case for this and clean up / normalise or remove
 var couch2pg = require('./index');
 var Promise = require('rsvp').Promise;
 

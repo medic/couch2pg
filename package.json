@@ -8,6 +8,7 @@
     "url": "git://github.com/medic/medic-analytics.git"
   },
   "dependencies": {
+    "loglevel": "^1.4.1",
     "pg": "^4.0.0",
     "pg-format": "^1.0.0",
     "pg-promise": "^3.0.0",
