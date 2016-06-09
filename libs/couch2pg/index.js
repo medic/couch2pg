@@ -23,7 +23,7 @@ exports.migrate = function() {
       connectionString: POSTGRESQL_URL
     });
 
-    postgrator.migrate('002', function(err, migrations) {
+    postgrator.migrate('201606091248', function(err, migrations) {
       if (err) {
         reject(err);
       } else {
