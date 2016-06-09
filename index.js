@@ -27,7 +27,7 @@ var loop = function () {
       console.log('XML forms completed at ' + Date());
     })
     .catch(function(err) {
-      console.error('Something went wrong', err);
+      console.error('Something went wrong at ' + Date(), err);
     });
 };
 
