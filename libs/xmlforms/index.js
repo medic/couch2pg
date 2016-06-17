@@ -9,10 +9,11 @@ var Promise = require('rsvp').Promise;
 var contacts = require('./contacts');
 var formreport = require('./formreport');
 var pgsql = require('./pgsql');
+var cleaner = require('./cleaner');
 var postgrator = require('postgrator');
 
 var exports = module.exports = {};
-exports.extract = function () {
+exports.extract = function (changedDocIds) {
   var db;
   return pglib({ 'promiseLib': Promise })(process.env.POSTGRESQL_URL)
     .connect()
@@ -44,6 +45,17 @@ exports.extract = function () {
         console.log('adding if necessary.');
       }
       return formreport.addFormMetadata(db, pgsql, needed);
+    })
+    .then(function () {
+      if (changedDocIds) {
+        if (COUCH2PG_DEBUG) {
+          console.log('cleaning up ' + changedDocIds.length + ' changed documents');
+        }
+
+        return cleaner.clean(db, changedDocIds);
+      } else {
+        return Promise.resolve();
+      }
     })
     .then(function () {
       if (COUCH2PG_DEBUG) {
