@@ -1,50 +1,47 @@
-var couch2pg = require('./libs/couch2pg/index');
-var xmlforms = require('./libs/xmlforms/index');
-var Promise = require('./libs/common').Promise;
+var log = require('loglevel'),
+    couch2pg =  require('./libs/couch2pg/index'),
+    xmlforms = require('./libs/xmlforms/index');
 
-// convert minutes into ms
-var sleepMins = process.env.COUCH2PG_SLEEP_MINS * 60000;
-if (isNaN(sleepMins)) {
-  // no interval specified. Default to once per hour.
-  console.log('Missing time interval. Defaulting to once per hour.');
-  sleepMins = 3600000;
+if (process.env.COUCH2PG_DEBUG) {
+  log.setDefaultLevel('debug');
+} else {
+  log.setDefaultLevel('info');
 }
 
-var startTime = function() {
-  return new Promise(function (resolve) {
-    var starttime = new Date();
-    console.log('\nStarting import at ' + starttime);
-    resolve(starttime);
-  });
-};
+var sleepMs = process.env.COUCH2PG_SLEEP_MINS * 60 * 1000;
+if (isNaN(sleepMs)) {
+  log.debug('Missing time interval. Defaulting to once per hour.');
+  sleepMs = 1 * 60 * 60 * 1000;
+}
 
 var loop = function () {
-  var starttime;
-  startTime()
-    .then(function (time) {
-      starttime = time;
+  console.log('Starting loop at ' + new Date());
+  return couch2pg.migrate()
+    .then(function() {
+      log.info('Couch2pg Migration checks complete');
     })
+    .then(couch2pg.import)
+    .then(function(summary) {
+      log.info('Imported successfully at ' + Date());
 
-    .then(couch2pg)
-    .then(function () {
-      console.log('Imported successfully at ' + Date());
-    }, function (err) {
-      console.log('Import errored at ' + Date());
-      console.log(err);
+      var allDocs = summary.deleted.concat(summary.edited);
+      log.info('There were ' + allDocs.length + ' changes');
+
+      return xmlforms.migrate()
+      .then(function() {
+        log.info('xmlforms Migration checks complete');
+        return xmlforms.extract(allDocs);
+      })
+      .then(function () {
+        log.info('XML forms completed at ' + Date());
+      });
     })
-
-    .then(xmlforms)
-    .then(function () {
-      console.log('XML forms completed at ' + Date());
-    }, function (err) {
-      console.log('XML forms errored at ' + Date());
-      console.log(err);
-    })
-
-    .then(function () {
-      console.log('Next run at ' + new Date(starttime.valueOf() + sleepMins));
+    .catch(function(err) {
+      log.error('Something went wrong at ' + Date(), err);
     });
 };
 
-loop();
-setInterval(loop, sleepMins);
+loop().then(function() {
+  log.info('Next run at ' + new Date(new Date().getTime() + sleepMs));
+  setInterval(loop, sleepMs);
+});

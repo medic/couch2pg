@@ -1,5 +1,3 @@
-var Promise = require('../common').Promise;
-
 var xmleng = require('pixl-xml');
 
 // modified from
@@ -41,24 +39,6 @@ var parseInstanceXML = function(xml) {
     'jsondata': jsondata,
     'fields': flattaglist
   };
-};
-
-exports.formMetadataNeeded = function(db, pgsql) {
-  return db.query(pgsql.checkFormMetadata())
-         .then(function (rows) {
-           // convert "exists" into "needed"
-           return !rows[0].exists;
-         });
-};
-
-exports.addFormMetadata = function(db, pgsql, needed) {
-  if (needed) {
-    return db.query(pgsql.initializeFormMetadata());
-  } else {
-    return new Promise(function (resolve) {
-      return resolve();
-    });
-  }
 };
 
 exports.fetchAndParseReports = function(db, pgsql) {
@@ -139,7 +119,7 @@ exports.createTables = function(db, pgsql, tableObjects) {
   // takes in objects sorted by table
   // as output from fetchAndParseReports()
   // and creates tables for each
-  
+
   // map tableObjects into
   // { "table": [ fields ], ... }
   var tableFields = {};
