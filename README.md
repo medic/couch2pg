@@ -1,4 +1,5 @@
-# medic-analytics
+# medic-analytics ![travis](https://travis-ci.org/medic/medic-analytics.svg?branch=master)
+
 Software for creating read-only replicas of CouchDB data inside PostgreSQL v9.4
 
 The focus is on Medic Mobile data currently stored in CouchDB, but applications
