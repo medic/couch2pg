@@ -6,13 +6,13 @@ var pglib = require('pg-promise');
 
 var Promise = require('rsvp').Promise;
 
-var contacts = require('./contacts');
 var formreport = require('./formreport');
 var pgsql = require('./pgsql');
+var cleaner = require('./cleaner');
 var postgrator = require('postgrator');
 
 var exports = module.exports = {};
-exports.extract = function () {
+exports.extract = function (changedDocIds) {
   var db;
   return pglib({ 'promiseLib': Promise })(process.env.POSTGRESQL_URL)
     .connect()
@@ -20,30 +20,15 @@ exports.extract = function () {
       db = this_db;
     })
     .then(function () {
-      if (COUCH2PG_DEBUG) {
-        console.log('checking if contacts are needed and missing');
+      if (changedDocIds) {
+        if (COUCH2PG_DEBUG) {
+          console.log('cleaning up ' + changedDocIds.length + ' changed documents');
+        }
+
+        return cleaner.clean(db, changedDocIds);
+      } else {
+        return Promise.resolve();
       }
-      return contacts.contactsNeeded(db, pgsql);
-    })
-    .then(function (needed) {
-      if (COUCH2PG_DEBUG) {
-        console.log('contacts needed? ' + needed);
-        console.log('adding if necessary.');
-      }
-      return contacts.addContacts(db, pgsql, needed);
-    })
-    .then(function () {
-      if (COUCH2PG_DEBUG) {
-        console.log('checking if form metadata is missing');
-      }
-      return formreport.formMetadataNeeded(db, pgsql);
-    })
-    .then(function (needed) {
-      if (COUCH2PG_DEBUG) {
-        console.log('metadata table needed? ' + needed);
-        console.log('adding if necessary.');
-      }
-      return formreport.addFormMetadata(db, pgsql, needed);
     })
     .then(function () {
       if (COUCH2PG_DEBUG) {
@@ -102,7 +87,7 @@ exports.migrate = function() {
       connectionString: POSTGRESQL_URL
     });
 
-    postgrator.migrate('001', function(err, migrations) {
+    postgrator.migrate('201606201000', function(err, migrations) {
       if (err) {
         reject(err);
       } else {

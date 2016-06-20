@@ -74,7 +74,7 @@ module.exports = function(db, couchdb, concurrentDocLimit) {
         log.info('There are ' + changes.results.length + ' changes to process');
 
         if (changes.results.length === 0) {
-          return Promise.resolve();
+          return {deleted: [], edited: []};
         }
 
         // TODO when node supports destructuring use it:
@@ -85,17 +85,26 @@ module.exports = function(db, couchdb, concurrentDocLimit) {
         var docsToDelete = deletesAndModifications[0],
             docsToDownload = deletesAndModifications[1];
 
+        var deletedDocIds = _.pluck(docsToDelete, 'id');
+        var editedDocIds = _.pluck(docsToDownload, 'id');
+
         log.debug('There are ' +
           docsToDelete.length + ' deletions and ' +
           docsToDownload.length + ' new / changed documents');
 
-        return deleteDocuments(db, _.pluck(docsToDelete, 'id'))
+        return deleteDocuments(db, deletedDocIds)
           .then(function() {
             return loadAndStoreDocs(db, couchdb, concurrentDocLimit, docsToDownload);
           })
           .then(function() {
             log.info('Marked final seq of ' + changes.last_seq);
             return storeSeq(db, changes.last_seq);
+          })
+          .then(function() {
+            return {
+              deleted: deletedDocIds,
+              edited: editedDocIds
+            };
           });
       });
   };

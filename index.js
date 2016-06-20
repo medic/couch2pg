@@ -21,16 +21,20 @@ var loop = function () {
       log.info('Couch2pg Migration checks complete');
     })
     .then(couch2pg.import)
-    .then(function () {
+    .then(function(summary) {
       log.info('Imported successfully at ' + Date());
-    })
-    .then(xmlforms.migrate)
-    .then(function() {
-      log.info('xmlforms Migration checks complete');
-    })
-    .then(xmlforms.extract)
-    .then(function () {
-      log.info('XML forms completed at ' + Date());
+
+      var allDocs = summary.deleted.concat(summary.edited);
+      log.info('There were ' + allDocs.length + ' changes');
+
+      return xmlforms.migrate()
+      .then(function() {
+        log.info('xmlforms Migration checks complete');
+        return xmlforms.extract(allDocs);
+      })
+      .then(function () {
+        log.info('XML forms completed at ' + Date());
+      });
     })
     .catch(function(err) {
       log.error('Something went wrong at ' + Date(), err);
