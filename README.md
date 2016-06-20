@@ -27,6 +27,14 @@ Optional variables:
 
 We support PostgreSQL 9.4 and greater. The user passed in the postgres url needs to have full creation rights on the given database.
 
+## Example usage
+
+You should probably install medic-analytics as a service and leave it to do its thing, as it should be able to run independently without any user input.
+
+If you want to run it locally: `node index`
+
+Or more realistically with useful env vars: `POSTGRESQL_URL=postgres://manalytics:manalytics@localhost:5432/medic-analytics-0.1.0 COUCHDB_URL=http://admin:pass@localhost:5984/medic COUCH2PG_SLEEP_MINS=10 COUCH2PG_DOC_LIMIT=1000 COUCH2PG_DEBUG=true node index.js`
+
 ## Running tests
 
 Some environment variables that may be required for the integration tests to run correctly:
@@ -40,48 +48,3 @@ Some environment variables that may be required for the integration tests to run
 You may be able to get away with not setting any of these, or only needing to set some of these depending on your development environment.
 
 NB: the integration tests destroy and re-create the given databases each time they are run. Use test databases.
-
-## Example usage
-
-Run `node index`
-
-## couch2pg
-
-Moves couch data into postgres.
-
-### Example usage
-
-Run `node libs/couch2pg/mainloop`.
-
-### Process
-
-1. Ensure Postgres has jsonb storage location ready.
-1. All record UUIDs are taken in from CouchDB using GET `_all_docs` and `include_docs=false`
-1. Fetched UUIDs are compared against existing records in Postgres.
-1. Missing docs are taken in from CouchDB using POST `_all_docs` and `include_docs=true`.
-1. Fetched docs are iterated into distinct JSON objects.
-1. Each JSON object is added to Postgres as jsonb.
-
-## xmlforms
-
-Create table representations of OpenRosa/XForms data in PostgreSQL.
-
-### Example usage
-
-Run `node libs/xmlforms/main`.
-
-### Process
-
-1. contacts
-  1. Make sure version is either 0.6 or 2.6.
-  1. Determine if contacts have been generated.
-  1. If version .6 and contacts missing, create contacts framework.
-1. form reports
-  1. Make sure there's a place for metadata storage (and index it)
-  1. Fetch contents of reports in Couch table which don't already have metadata in the system.
-  1. Parse common features from reports.
-  1. Create `formview_` tables to store each version of each form if they are missing.
-  1. Write form report meta data.
-  1. Write form reports out to the correct `formview_` tables.
-1. materialized views
-  1. refresh them!
