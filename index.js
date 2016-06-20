@@ -24,19 +24,17 @@ var loop = function () {
     .then(function(summary) {
       log.info('Imported successfully at ' + Date());
 
-      if (summary) {
-        var allDocs = summary.deleted.concat(summary.edited);
-        log.info('There are changed documents, running xmlforms');
+      var allDocs = summary.deleted.concat(summary.edited);
+      log.info('There were ' + allDocs.length + ' changes');
 
-        return xmlforms.migrate()
-        .then(function() {
-          log.info('xmlforms Migration checks complete');
-          return xmlforms.extract(allDocs);
-        })
-        .then(function () {
-          log.info('XML forms completed at ' + Date());
-        });
-      }
+      return xmlforms.migrate()
+      .then(function() {
+        log.info('xmlforms Migration checks complete');
+        return xmlforms.extract(allDocs);
+      })
+      .then(function () {
+        log.info('XML forms completed at ' + Date());
+      });
     })
     .catch(function(err) {
       log.error('Something went wrong at ' + Date(), err);

@@ -12,21 +12,22 @@ var getTablesForDocs = function(db, docIds) {
       return 'formview_' + row.formname + '_' + row.formversion;
     });
 
-    _.chain(grouped)
-      .keys()
-      .each(function(key) {
-        grouped[key] = _.pluck(grouped[key], 'uuid');
-      });
+    Object.keys(grouped).forEach(function(key) {
+      grouped[key] = _.pluck(grouped[key], 'uuid');
+    });
 
     return grouped;
   });
 };
 
 var deleteDocsInTable = function(db, tableToDocs) {
+  // Reducing means the DELETEs get executed in serial as opposed to all at once
   return _.reduce(
     _.keys(tableToDocs),
     function(thenChain, key) {
-      return db.query(format('DELETE FROM %I WHERE xmlforms_uuid IN (%L)', key, tableToDocs[key]));
+      return thenChain.then(function() {
+        return db.query(format('DELETE FROM %I WHERE xmlforms_uuid IN (%L)', key, tableToDocs[key]));
+      });
     },
     rsvp.Promise.resolve()
     ).then(function() {
@@ -39,8 +40,6 @@ var deleteMetadata = function(db, tableToDocs) {
 
   if (allDocs.length > 0) {
     return db.query(format('DELETE FROM form_metadata WHERE uuid in (%L)', allDocs));
-  } else {
-    return rsvp.Promise.resolve();
   }
 };
 

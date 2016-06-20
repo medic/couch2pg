@@ -74,7 +74,7 @@ module.exports = function(db, couchdb, concurrentDocLimit) {
         log.info('There are ' + changes.results.length + ' changes to process');
 
         if (changes.results.length === 0) {
-          return Promise.resolve();
+          return {deleted: [], edited: []};
         }
 
         // TODO when node supports destructuring use it:
