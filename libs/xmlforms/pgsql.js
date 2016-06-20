@@ -1,5 +1,4 @@
-var format = require('pg-format'),
-    fs = require('fs');
+var format = require('pg-format');
 
 function getFromEnv() {
   var config = {};
@@ -7,17 +6,6 @@ function getFromEnv() {
   config.jsonCol = 'doc';
   return config;
 }
-
-exports.checkForContacts = function() {
-  var c = getFromEnv();
-  // return version and 1 materialized view name (if any)
-  return format('SELECT LEFT(%I#>>\'{kanso,config,version}\',3)::NUMERIC AS version, matviewname FROM %I LEFT OUTER JOIN pg_catalog.pg_matviews ON (true) WHERE %I->>\'_id\' = \'_design/medic\' LIMIT 1;', c.jsonCol, c.jsonTable, c.jsonCol);
-};
-
-exports.initializeContacts = function() {
-  return fs.readFileSync('./libs/xmlforms/prepareContacts.sql',
-                         {'encoding': 'utf8'});
-};
 
 exports.getFormDefinitionsXML = function() {
   var c = getFromEnv();
@@ -31,15 +19,6 @@ exports.putFormList = function(formlist) {
     return format('(%L)', formname);
   }).join(',');
   return 'DROP TABLE IF EXISTS form_list; CREATE TABLE form_list (name TEXT); INSERT INTO form_list VALUES ' + formlist;
-};
-
-exports.checkFormMetadata = function() {
-  return 'SELECT count(tablename) > 0 AS exists FROM pg_catalog.pg_tables WHERE tablename = \'form_metadata\';';
-};
-
-exports.initializeFormMetadata = function() {
-  // add a bunch of indices while we're about
-  return 'CREATE TABLE form_metadata (uuid TEXT, chw TEXT, chw_area TEXT, formname TEXT, formversion TEXT, reported TIMESTAMP); CREATE INDEX form_metadata_uuid ON form_metadata (uuid); CREATE INDEX form_metadata_chw ON form_metadata (chw); CREATE INDEX form_metadata_reported ON form_metadata (reported); CREATE INDEX form_metadata_formname ON form_metadata (formname); CREATE INDEX form_metadata_formversion ON form_metadata (formname, formversion); ';
 };
 
 exports.fetchMissingReportContents = function() {

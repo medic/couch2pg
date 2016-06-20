@@ -26,7 +26,7 @@ var loop = function () {
 
       if (summary) {
         var allDocs = summary.deleted.concat(summary.edited);
-        log.info('There were ' + allDocs.length + ' changes');
+        log.info('There are changed documents, running xmlforms');
 
         return xmlforms.migrate()
         .then(function() {
