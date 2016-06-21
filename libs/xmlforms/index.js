@@ -13,6 +13,14 @@ var postgrator = require('postgrator');
 
 var exports = module.exports = {};
 exports.extract = function (changedDocIds) {
+  if (changedDocIds || changedDocIds.length < 0) {
+    if (COUCH2PG_DEBUG) {
+      console.log('No changes, no need to run xmlforms');
+    }
+
+    return;
+  }
+
   var db;
   return pglib({ 'promiseLib': Promise })(process.env.POSTGRESQL_URL)
     .connect()
@@ -20,15 +28,11 @@ exports.extract = function (changedDocIds) {
       db = this_db;
     })
     .then(function () {
-      if (changedDocIds) {
-        if (COUCH2PG_DEBUG) {
-          console.log('cleaning up ' + changedDocIds.length + ' changed documents');
-        }
-
-        return cleaner.clean(db, changedDocIds);
-      } else {
-        return Promise.resolve();
+      if (COUCH2PG_DEBUG) {
+        console.log('cleaning up ' + changedDocIds.length + ' changed documents');
       }
+
+      return cleaner.clean(db, changedDocIds);
     })
     .then(function () {
       if (COUCH2PG_DEBUG) {
