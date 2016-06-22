@@ -15,7 +15,7 @@ if (isNaN(sleepMs)) {
 }
 
 var loop = function () {
-  console.log('Starting loop at ' + new Date());
+  log.info('Starting loop at ' + new Date());
   return couch2pg.migrate()
     .then(function() {
       log.info('Couch2pg Migration checks complete');

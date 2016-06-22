@@ -1,41 +1,30 @@
-//TODO: work out the use case for this and clean up / normalise or remove
-var couch2pg = require('./index');
-var Promise = require('rsvp').Promise;
+var log = require('loglevel'),
+    couch2pg = require('./index');
 
-// convert minutes into ms
-var sleepMins = process.env.COUCH2PG_SLEEP_MINS * 60000;
-if (isNaN(sleepMins)) {
-  // no interval specified. Default to once per hour.
-  console.log('Missing time interval. Defaulting to once per hour.');
-  sleepMins = 3600000;
+if (process.env.COUCH2PG_DEBUG) {
+  log.setDefaultLevel('debug');
+} else {
+  log.setDefaultLevel('info');
 }
 
-var startTime = function() {
-  return new Promise(function (resolve) {
-    var starttime = new Date();
-    console.log('\nStarting import at ' + starttime);
-    resolve(starttime);
-  });
-};
+var sleepMs = process.env.COUCH2PG_SLEEP_MINS * 60000;
+if (isNaN(sleepMs)) {
+  log.info('Missing time interval. Defaulting to once per hour.');
+  sleepMs = 1 * 60 * 60 * 1000;
+}
 
-var loop = function () {
-  var starttime;
-  startTime()
-    .then(function (time) {
-      starttime = time;
-    })
-    .then(couch2pg.migrate)
+var loop = function() {
+  log.info('Starting loop at ' + new Date());
+  return couch2pg.migrate()
     .then(couch2pg.import)
     .then(function () {
-      console.log('Imported successfully at ' + Date());
+      log.info('Imported successfully at ' + Date());
     }, function (err) {
-      console.log('Import errored at ' + Date());
-      console.log(err);
-    })
-    .then(function () {
-      console.log('Next run at ' + new Date(starttime.valueOf() + sleepMins));
+      log.error('Import errored at ' + Date(), err);
     });
 };
 
-loop();
-setInterval(loop, sleepMins);
+loop().then(function() {
+  log.info('Next run at ' + new Date(new Date().getTime() + sleepMs));
+  setInterval(loop, sleepMs);
+});
