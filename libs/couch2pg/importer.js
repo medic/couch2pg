@@ -74,6 +74,7 @@ module.exports = function(db, couchdb, concurrentDocLimit) {
       .then(function(seqResult) {
         log.debug('Downloading CouchDB changes feed from ' + seqResult.seq);
         return couchdb.changes({
+          timeout: false,
           since: seqResult.seq
         });
       })
