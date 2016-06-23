@@ -157,7 +157,7 @@ describe('couch2pg', function() {
 
   describe('initial import into postgres', function() {
     before(function() {
-      return _.range(DOCS_TO_CREATE).map(generateRandomDocument).createDocs;
+      return createDocs(_.range(DOCS_TO_CREATE).map(generateRandomDocument));
     });
 
     it('runs successfully', itRunsSuccessfully);
