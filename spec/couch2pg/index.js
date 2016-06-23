@@ -187,7 +187,7 @@ describe('couch2pg', function() {
         .then(function() {
           return couchdb.bulkDocs(updatedDocs).then(function(results) {
             results.forEach(function(result) {
-              var doc = docs.find(function(d) {
+              var doc = _.find(docs, function(d) {
                 return d._id === result.id;
               });
 
