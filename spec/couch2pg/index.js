@@ -208,4 +208,15 @@ describe('couch2pg', function() {
     it('still has the same number of documents as couch', itHasTheSameNumberOfDocs);
     it('still has the same documents as couch', itHasTheSameDocuments);
   });
+  describe('Escaping', function() {
+    it('should handle documents with \\u0000 in it', function() {
+      return couchdb.put({
+        _id: 'u0000-escaped',
+        data: 'blah blah \u0000\u0000\u0000\u0000 blah'
+      }).then(itRunsSuccessfully).catch(function(err) {
+        console.log(err);
+        throw new Error(err);
+      });
+    });
+  });
 });

@@ -44,11 +44,18 @@ var loadAndStoreDocs = function(db, couchdb, concurrentDocLimit, docsToDownload)
     }).then(function(couchDbResult) {
       log.debug('Inserting ' + couchDbResult.rows.length + ' results into couchdb');
 
-      return db.query(format(
-        'INSERT INTO couchdb (doc) VALUES %L',
+      var insertSql = format('INSERT INTO couchdb (doc) VALUES %L',
         couchDbResult.rows.map(function(row) {
-          return [JSON.stringify(row.doc)];
-        })));
+          return [row.doc];
+        }));
+
+      // PostgreSQL doesn't support \u0000 in JSON strings, see:
+      //   https://www.postgresql.org/message-id/E1YHHV8-00032A-Em@gemulon.postgresql.org
+      // pg-format replaces any \uxxxx with \\\\uxxxx, which looks weird but
+      // results ultimately in the data getting into pg correctly.
+      insertSql = insertSql.replace(/\\\\u0000/g, '');
+
+      return db.query(insertSql);
     }).then(function() {
       return storeSeq(db, maxSeq);
     }).then(function() {
