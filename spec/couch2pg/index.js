@@ -20,12 +20,15 @@ var _ = require('underscore'),
     pgp = require('pg-promise')({ 'promiseLib': Promise }),
     format = require('pg-format'),
     couch2pg = require('../../libs/couch2pg/index'),
-    pouchdb = require('pouchdb');
+    pouchdb = require('pouchdb'),
+    log = require('loglevel');
 
-var DOCS_TO_CREATE = 10;
-var DOCS_TO_ADD = 3;
-var DOCS_TO_EDIT = 3;
-var DOCS_TO_DELETE = 3;
+log.setDefaultLevel('error'); // CHANGE ME FOR MORE DETAILS
+
+var DOCS_TO_CREATE = 50;
+var DOCS_TO_ADD = 10;
+var DOCS_TO_EDIT = 10;
+var DOCS_TO_DELETE = 10;
 
 var createPgConnection = function(host, port, user, pass, database) {
   var options = {
@@ -117,9 +120,9 @@ describe('couch2pg', function() {
   };
 
   var itHasTheSameNumberOfDocs = function() {
-    RSVP.all([
+    return RSVP.all([
       pgdb.one('SELECT COUNT(*) FROM couchdb'),
-      couchDbDocs
+      couchDbDocs()
     ]).then(function(results) {
       var pgCount = parseInt(results[0].count),
           couchCount = results[1].length;
@@ -129,9 +132,9 @@ describe('couch2pg', function() {
   };
 
   var itHasTheSameDocuments = function() {
-    RSVP.all([
+    return RSVP.all([
       pgdb.query('SELECT * from couchdb'),
-      couchDbDocs
+      couchDbDocs()
     ]).then(function(results) {
       var pgdocs = _.pluck(results[0], 'doc');
       var docs = results[1];
