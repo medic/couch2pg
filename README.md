@@ -21,7 +21,8 @@ are required.
 Optional variables:
 
 * `COUCH2PG_DOC_LIMIT`: number of documents to grab concurrently. Defaults to 100. Increasing this number will cut down on HTTP GETs and may improve performance, decreasing this number will cut down on node memory usage, and may increase stability.
-* `COUCH2PG_DEBUG`: returns more debug output from the xmlforms module.
+* `COUCH2PG_CHANGES_LIMIT`: number of document ids to grab per change limit request. Defaults to 10,000. Increasing this number will cut down on HTTP GETs and may improve performance, decreasing this number will cut down on node memory usage slightly, and may increase stability.
+* `COUCH2PG_DEBUG`: sets the logging level to DEBUG as opposed to INFO, which will return more information.
 
 ## Required database setup
 

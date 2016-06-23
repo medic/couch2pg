@@ -12,6 +12,9 @@ process.env.POSTGRESQL_URL = 'postgres://' +
   INT_PG_HOST + ':' + INT_PG_PORT + '/' + INT_PG_DB;
 process.env.COUCHDB_URL = INT_COUCHDB_URL;
 
+process.env.COUCH2PG_DOC_LIMIT = 2;
+process.env.COUCH2PG_CHANGES_LIMIT = 5;
+
 var _ = require('underscore'),
     RSVP = require('rsvp'),
     common = require('../../tests/common'),
@@ -25,10 +28,10 @@ var _ = require('underscore'),
 
 log.setDefaultLevel('error'); // CHANGE ME FOR MORE DETAILS
 
-var DOCS_TO_CREATE = 50;
-var DOCS_TO_ADD = 10;
-var DOCS_TO_EDIT = 10;
-var DOCS_TO_DELETE = 10;
+var DOCS_TO_CREATE = 10;
+var DOCS_TO_ADD = 5;
+var DOCS_TO_EDIT = 5;
+var DOCS_TO_DELETE = 5;
 
 var createPgConnection = function(host, port, user, pass, database) {
   var options = {

@@ -4,14 +4,15 @@ var Promise = require('rsvp').Promise,
 
 var COUCHDB_URL  = process.env.COUCHDB_URL,
     POSTGRESQL_URL = process.env.POSTGRESQL_URL,
-    COUCH2PG_DOC_LIMIT = process.env.COUCH2PG_DOC_LIMIT;
+    COUCH2PG_DOC_LIMIT = process.env.COUCH2PG_DOC_LIMIT,
+    COUCH2PG_CHANGES_LIMIT = process.env.COUCH2PG_CHANGES_LIMIT;
 
 var couchdb = require('pouchdb')(COUCHDB_URL),
     db = require('pg-promise')({ 'promiseLib': Promise })(POSTGRESQL_URL);
 
 var exports = module.exports = {};
 exports.import = function() {
-  return importer(db, couchdb, COUCH2PG_DOC_LIMIT).import();
+  return importer(db, couchdb, COUCH2PG_DOC_LIMIT, COUCH2PG_CHANGES_LIMIT).import();
 };
 
 exports.migrate = function() {

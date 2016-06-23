@@ -66,58 +66,85 @@ var loadAndStoreDocs = function(db, couchdb, concurrentDocLimit, docsToDownload)
   }
 };
 
-module.exports = function(db, couchdb, concurrentDocLimit) {
-  concurrentDocLimit = concurrentDocLimit || 100;
+var emptyChangesSummary = function() { return {deleted: [], edited: []}; };
 
-  var _import = function() {
-    return db.one('SELECT seq FROM couchdb_progress')
-      .then(function(seqResult) {
-        log.debug('Downloading CouchDB changes feed from ' + seqResult.seq);
-        return couchdb.changes({
-          timeout: false,
-          since: seqResult.seq
-        });
-      })
-      .then(function(changes) {
-        log.info('There are ' + changes.results.length + ' changes to process');
-
-        if (changes.results.length === 0) {
-          return {deleted: [], edited: []};
-        }
-
-        // TODO when node supports destructuring use it:
-        // var [docsToDelete, docsToDownload] = _.partition... etc
-        var deletesAndModifications = _.partition(changes.results, function(result) {
-          return result.deleted;
-        });
-        var docsToDelete = deletesAndModifications[0],
-            docsToDownload = deletesAndModifications[1];
-
-        var deletedDocIds = _.pluck(docsToDelete, 'id');
-        var editedDocIds = _.pluck(docsToDownload, 'id');
-
-        log.debug('There are ' +
-          docsToDelete.length + ' deletions and ' +
-          docsToDownload.length + ' new / changed documents');
-
-        return deleteDocuments(db, deletedDocIds)
-          .then(function() {
-            return loadAndStoreDocs(db, couchdb, concurrentDocLimit, docsToDownload);
-          })
-          .then(function() {
-            log.info('Marked final seq of ' + changes.last_seq);
-            return storeSeq(db, changes.last_seq);
-          })
-          .then(function() {
-            return {
-              deleted: deletedDocIds,
-              edited: editedDocIds
-            };
-          });
+var importChangesBatch = function(db, couchdb, concurrentDocLimit, changesLimit) {
+  return db.one('SELECT seq FROM couchdb_progress')
+    .then(function(seqResult) {
+      log.debug('Downloading CouchDB changes feed from ' + seqResult.seq);
+      return couchdb.changes({
+        limit: changesLimit,
+        since: seqResult.seq
       });
+    })
+    .then(function(changes) {
+      log.info('There are ' + changes.results.length + ' changes to process');
+
+      if (changes.results.length === 0) {
+        return emptyChangesSummary;
+      }
+
+      // TODO when node supports destructuring use it:
+      // var [docsToDelete, docsToDownload] = _.partition... etc
+      var deletesAndModifications = _.partition(changes.results, function(result) {
+        return result.deleted;
+      });
+      var docsToDelete = deletesAndModifications[0],
+          docsToDownload = deletesAndModifications[1];
+
+      var deletedDocIds = _.pluck(docsToDelete, 'id');
+      var editedDocIds = _.pluck(docsToDownload, 'id');
+
+      log.debug('There are ' +
+        docsToDelete.length + ' deletions and ' +
+        docsToDownload.length + ' new / changed documents');
+
+      return deleteDocuments(db, deletedDocIds)
+        .then(function() {
+          return loadAndStoreDocs(db, couchdb, concurrentDocLimit, docsToDownload);
+        })
+        .then(function() {
+          log.info('Marked final seq of ' + changes.last_seq);
+          return storeSeq(db, changes.last_seq);
+        })
+        .then(function() {
+          return {
+            deleted: deletedDocIds || [],
+            edited: editedDocIds || []
+          };
+        });
+    });
+};
+
+var changesCount = function(changes) {
+  return ((changes && changes.deleted && changes.deleted.length) || 0) +
+         ((changes && changes.edited && changes.edited.length)   || 0);
+};
+
+module.exports = function(db, couchdb, concurrentDocLimit, changesLimit) {
+  concurrentDocLimit = concurrentDocLimit || 100;
+  changesLimit = changesLimit || 10000;
+
+  var importLoop = function(accChanges) {
+    log.debug('Performing an import batch of up to ' + changesLimit + ' changes');
+
+    return importChangesBatch(db, couchdb, concurrentDocLimit, changesLimit).then(function(changes) {
+      if (changesCount(changes) > 0) {
+        log.debug('Batch completed with ' + changesCount(changes) + ' changes');
+
+        return importLoop({
+          deleted: accChanges.deleted.concat(changes.deleted),
+          edited: accChanges.edited.concat(changes.edited)
+        });
+      } else {
+        log.debug('Import loop complete, ' + changesCount(accChanges) + ' changes total');
+
+        return accChanges;
+      }
+    });
   };
 
   return {
-    import: _import
+    import: function() { return importLoop(emptyChangesSummary()); }
   };
 };
