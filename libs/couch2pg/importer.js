@@ -81,7 +81,7 @@ var importChangesBatch = function(db, couchdb, concurrentDocLimit, changesLimit)
       log.info('There are ' + changes.results.length + ' changes to process');
 
       if (changes.results.length === 0) {
-        return emptyChangesSummary;
+        return emptyChangesSummary();
       }
 
       // TODO when node supports destructuring use it:
