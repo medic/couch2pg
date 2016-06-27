@@ -1,3 +1,5 @@
+//TODO fix this in alignment with ../index.js
+
 var log = require('loglevel'),
     couch2pg = require('./index');
 

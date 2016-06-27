@@ -1,16 +1,8 @@
 var format = require('pg-format');
 
-function getFromEnv() {
-  var config = {};
-  config.jsonTable = 'couchdb';
-  config.jsonCol = 'doc';
-  return config;
-}
-
 exports.getFormDefinitionsXML = function() {
-  var c = getFromEnv();
-  // it is important (yet arbitrary) to name the field "form"
-  return format('SELECT %I->>\'_rev\' AS version, (%I #> \'{_attachments,xml,data}\') AS form FROM %I WHERE %I->>\'type\' = \'form\' AND %I->\'_attachments\' ? \'xml\';', c.jsonCol, c.jsonCol, c.jsonTable, c.jsonCol, c.jsonCol);
+  return ['SELECT doc->>\'_rev\' AS version, (doc #> \'{_attachments,xml,data}\') AS form',
+          'FROM coucdb WHERE doc->>\'type\' = \'form\' AND doc->\'_attachments\' ? \'xml\';'].join(' ');
 };
 
 exports.putFormList = function(formlist) {
@@ -22,9 +14,12 @@ exports.putFormList = function(formlist) {
 };
 
 exports.fetchMissingReportContents = function() {
-  var c = getFromEnv();
-  // grab specific report fields for each report in Couch but not in formmeta
-  return format('SELECT %I->>\'_id\' AS uuid, %I->>\'reported_date\' AS reported, %I#>\'{contact,parent,_id}\' AS area, %I#>\'{contact,_id}\' AS chw, %I->>\'content\' AS xml FROM %I LEFT OUTER JOIN form_metadata AS fmd ON (fmd.uuid = %I->>\'_id\') WHERE %I @> \'{"type": "data_record"}\'::jsonb AND %I ? \'form\' AND fmd.uuid IS NULL;', c.jsonCol, c.jsonCol, c.jsonCol, c.jsonCol, c.jsonCol, c.jsonTable, c.jsonCol, c.jsonCol, c.jsonCol);
+  return ['SELECT doc->>\'_id\' AS uuid, doc->>\'reported_date\' AS reported,',
+          'doc#>\'{contact,parent,_id}\' AS area, doc#>\'{contact,_id}\' AS chw,',
+          'doc->>\'content\' AS xml FROM couchdb',
+          'LEFT OUTER JOIN form_metadata AS fmd ON (fmd.uuid = doc->>\'_id\')',
+          'WHERE doc @> \'{"type": "data_record"}\'::jsonb AND doc ? \'form\'',
+          'AND fmd.uuid IS NULL;'].join(' ');
 };
 
 exports.putFormViews = function(tabledef) {

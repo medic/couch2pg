@@ -1,15 +1,14 @@
 var _ = require('underscore'),
     log = require('loglevel'),
-    Promise = require('rsvp').Promise,
+    rsvp = require('rsvp'),
     format = require('pg-format');
 
 var deleteDocuments = function(db, docIdsToDelete) {
   if (docIdsToDelete && docIdsToDelete.length > 0) {
     return db.query(
-      format('DELETE FROM couchdb WHERE doc->>\'_id\' in (%L)',
-        docIdsToDelete));
+      format('DELETE FROM couchdb WHERE doc->>\'_id\' in (%L)', docIdsToDelete));
   } else {
-    return Promise.resolve();
+    return rsvp.Promise.resolve();
   }
 };
 
@@ -18,16 +17,12 @@ var storeSeq = function(db, seq) {
 };
 
 /*
-NB: loadAndStore doesn't try to only load and store documents that have changed
-from postgres' perspective, because we presume if something appears in the
-changes feed it needs updating.
-
-If somehow this changes we can make this code more complicated.
+Downloads all given documents from couchdb and stores them in Postgres, in batches.
+We presume if a document is on this list it has changed, and thus needs updating.
 */
 var loadAndStoreDocs = function(db, couchdb, concurrentDocLimit, docsToDownload) {
   if (docsToDownload.length > 0) {
     var changeSet = docsToDownload.splice(0, concurrentDocLimit);
-    var maxSeq = _.max(_.pluck(changeSet, 'seq'));
 
     return couchdb.allDocs({
       include_docs: true,
@@ -42,7 +37,7 @@ var loadAndStoreDocs = function(db, couchdb, concurrentDocLimit, docsToDownload)
           return couchDbResult;
         });
     }).then(function(couchDbResult) {
-      log.debug('Inserting ' + couchDbResult.rows.length + ' results into couchdb');
+      log.debug('Inserting ' + couchDbResult.rows.length + ' results into postgresql');
 
       var insertSql = format('INSERT INTO couchdb (doc) VALUES %L',
         couchDbResult.rows.map(function(row) {
@@ -57,16 +52,18 @@ var loadAndStoreDocs = function(db, couchdb, concurrentDocLimit, docsToDownload)
 
       return db.query(insertSql);
     }).then(function() {
-      return storeSeq(db, maxSeq);
-    }).then(function() {
-      log.debug('Marked seq at ' + maxSeq);
-
       return loadAndStoreDocs(db, couchdb, concurrentDocLimit, docsToDownload);
     });
   }
 };
 
-var emptyChangesSummary = function() { return {deleted: [], edited: []}; };
+var emptyChangesSummary = function(lastSeq) {
+  return {
+    deleted: [],
+    edited: [],
+    lastSeq: lastSeq || 0
+  };
+};
 
 var importChangesBatch = function(db, couchdb, concurrentDocLimit, changesLimit) {
   return db.one('SELECT seq FROM couchdb_progress')
@@ -81,7 +78,7 @@ var importChangesBatch = function(db, couchdb, concurrentDocLimit, changesLimit)
       log.info('There are ' + changes.results.length + ' changes to process');
 
       if (changes.results.length === 0) {
-        return emptyChangesSummary();
+        return emptyChangesSummary(changes.last_seq);
       }
 
       // TODO when node supports destructuring use it:
@@ -104,13 +101,10 @@ var importChangesBatch = function(db, couchdb, concurrentDocLimit, changesLimit)
           return loadAndStoreDocs(db, couchdb, concurrentDocLimit, docsToDownload);
         })
         .then(function() {
-          log.info('Marked final seq of ' + changes.last_seq);
-          return storeSeq(db, changes.last_seq);
-        })
-        .then(function() {
           return {
             deleted: deletedDocIds || [],
-            edited: editedDocIds || []
+            edited: editedDocIds || [],
+            lastSeq: changes.last_seq
           };
         });
     });
@@ -122,29 +116,50 @@ var changesCount = function(changes) {
 };
 
 module.exports = function(db, couchdb, concurrentDocLimit, changesLimit) {
-  concurrentDocLimit = concurrentDocLimit || 100;
-  changesLimit = changesLimit || 10000;
-
   var importLoop = function(accChanges) {
     log.debug('Performing an import batch of up to ' + changesLimit + ' changes');
 
     return importChangesBatch(db, couchdb, concurrentDocLimit, changesLimit).then(function(changes) {
-      if (changesCount(changes) > 0) {
-        log.debug('Batch completed with ' + changesCount(changes) + ' changes');
+      return storeSeq(db, changes.lastSeq).then(function() {
+        if (changesCount(changes) > 0) {
+          log.debug('Batch completed with ' + changesCount(changes) + ' changes');
 
-        return importLoop({
-          deleted: accChanges.deleted.concat(changes.deleted),
-          edited: accChanges.edited.concat(changes.edited)
-        });
-      } else {
-        log.debug('Import loop complete, ' + changesCount(accChanges) + ' changes total');
+          return importLoop({
+            deleted: accChanges.deleted.concat(changes.deleted),
+            edited: accChanges.edited.concat(changes.edited),
+            lastSeq : changes.lastSeq
+          });
+        } else {
+          log.debug('Import loop complete, ' + changesCount(accChanges) + ' changes total');
 
-        return accChanges;
-      }
+          // It's almost completely unlikely that this nunber will be different due to how
+          // couchdb works (if there are absolutely no changes in a batch that's because you already
+          // got to the end of all changes last time) but I'm counting that as an implementation
+          // detail (eg maybe we change to a filtered changes feed in the future), so let's be sure.
+          accChanges.lastSeq = changes.lastSeq;
+          return accChanges;
+        }
+      });
     });
   };
 
   return {
-    import: function() { return importLoop(emptyChangesSummary()); }
+    /*
+      Imports all changes from CouchDB since last time into PostgreSQL,
+      checkpointing the lastSeq value into postgres as it goes.
+      Returns a summary of edits, deletes, and the latest seq number
+    */
+    importAll: function() { return importLoop(emptyChangesSummary()); },
+    /*
+      Imports one batch of `changesLimit` changes into PostgreSQL.
+      Unlike `importAll` it does not checkpoint the lastSeq value into postgres,
+      it is presumed you will do this yourself at a later stage.
+      Returns a summary of edits, deletes, and the latest seq number from the batch
+    */
+    importBatch: function() { return importChangesBatch(db, couchdb, concurrentDocLimit, changesLimit); },
+    /*
+      Persists a given seq value.
+    */
+    storeSeq: function(seq) { return storeSeq(db, seq); }
   };
 };

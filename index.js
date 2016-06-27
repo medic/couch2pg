@@ -1,47 +1,60 @@
 var log = require('loglevel'),
-    couch2pg =  require('./libs/couch2pg/index'),
-    xmlforms = require('./libs/xmlforms/index');
+    env = require('./env')(),
+    Promise = require('rsvp').Promise,
+    couch2pgMigrator = require('./libs/couch2pg/migrator'),
+    xmlformsMigrator = require('./libs/xmlforms/migrator');
 
-if (process.env.COUCH2PG_DEBUG) {
-  log.setDefaultLevel('debug');
-} else {
-  log.setDefaultLevel('info');
-}
+var couchdb = require('pouchdb')(env.couchdbUrl),
+    db = require('pg-promise')({ 'promiseLib': Promise })(env.postgresqlUrl);
 
-var sleepMs = process.env.COUCH2PG_SLEEP_MINS * 60 * 1000;
-if (isNaN(sleepMs)) {
-  log.debug('Missing time interval. Defaulting to once per hour.');
-  sleepMs = 1 * 60 * 60 * 1000;
-}
+var couch2pg = require('./libs/couch2pg/importer')(
+      db, couchdb,
+      env.couch2pgDocLimit,
+      env.couch2pgChangesLimit),
+    xmlforms = require('./libs/xmlforms/extractor')(db);
 
-var loop = function () {
-  log.info('Starting loop at ' + new Date());
-  return couch2pg.migrate()
-    .then(function() {
-      log.info('Couch2pg Migration checks complete');
-    })
-    .then(couch2pg.import)
-    .then(function(summary) {
-      log.info('Imported successfully at ' + Date());
-
-      var allDocs = summary.deleted.concat(summary.edited);
-      log.info('There were ' + allDocs.length + ' changes');
-
-      return xmlforms.migrate()
+var batchLoop = function() {
+  var completeBatch = function(lastSeq) {
+    return couch2pg.storeSeq(lastSeq)
       .then(function() {
-        log.info('xmlforms Migration checks complete');
-        return xmlforms.extract(allDocs);
-      })
-      .then(function () {
-        log.info('XML forms completed at ' + Date());
+        log.info('Batch completed up to ' + lastSeq);
       });
-    })
-    .catch(function(err) {
-      log.error('Something went wrong at ' + Date(), err);
-    });
+  };
+
+  log.info('Beginning couch2pg and xmlforms batch');
+
+  return couch2pg.importBatch()
+  .then(function(changes) {
+    var allDocs = changes.deleted.concat(changes.edited);
+    log.debug('There are ' + allDocs.length + ' changes');
+
+    if (allDocs.length > 0) {
+      return xmlforms.extract(allDocs)
+      .then(function() {
+        return completeBatch(changes.lastSeq);
+      })
+      .then(batchLoop);
+    } else {
+      return completeBatch(changes.lastSeq);
+    }
+  });
 };
 
-loop().then(function() {
-  log.info('Next run at ' + new Date(new Date().getTime() + sleepMs));
-  setInterval(loop, sleepMs);
-});
+var run = function() {
+  log.info('Beginning couch2pg and xmlforms run');
+
+  return batchLoop()
+  .catch(function(err) {
+    log.error(err.stack);
+  })
+  .then(function() {
+    log.info('Run complete. Next run at ' + new Date(new Date().getTime() + env.sleepMs));
+    setInterval(run, env.sleepMs);
+  });
+};
+
+couch2pgMigrator(env.postgresqlUrl)()
+.then(function() {
+  return xmlformsMigrator(env.postgresqlUrl)();
+})
+.then(run);

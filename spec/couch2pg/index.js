@@ -5,15 +5,14 @@ var INT_PG_HOST = process.env.INT_PG_HOST || 'localhost',
     INT_PG_DB   = process.env.INT_PG_DB || 'medic-analytics-test',
     INT_COUCHDB_URL = process.env.INT_COUCHDB_URL || 'http://admin:pass@localhost:5984/medic-analytics-test';
 
-process.env.POSTGRESQL_URL = 'postgres://' +
+var POSTGRESQL_URL = 'postgres://' +
   (INT_PG_USER ? INT_PG_USER : '') +
   (INT_PG_PASS ? INT_PG_PASS += ':' + INT_PG_PASS : '') +
   (INT_PG_USER ? '@' : '') +
   INT_PG_HOST + ':' + INT_PG_PORT + '/' + INT_PG_DB;
-process.env.COUCHDB_URL = INT_COUCHDB_URL;
 
-process.env.COUCH2PG_DOC_LIMIT = 2;
-process.env.COUCH2PG_CHANGES_LIMIT = 5;
+var COUCH2PG_DOC_LIMIT = 2;
+var COUCH2PG_CHANGES_LIMIT = 5;
 
 var _ = require('underscore'),
     RSVP = require('rsvp'),
@@ -22,7 +21,7 @@ var _ = require('underscore'),
     Promise = RSVP.Promise,
     pgp = require('pg-promise')({ 'promiseLib': Promise }),
     format = require('pg-format'),
-    couch2pg = require('../../libs/couch2pg/index'),
+    couch2pgMigrator = require('../../libs/couch2pg/migrator'),
     pouchdb = require('pouchdb'),
     log = require('loglevel');
 
@@ -119,7 +118,13 @@ describe('couch2pg', function() {
   };
 
   var itRunsSuccessfully = function() {
-    return couch2pg.migrate().then(couch2pg.import);
+    var importer = require('../../libs/couch2pg/importer')(
+      pgdb, couchdb,
+      COUCH2PG_DOC_LIMIT,
+      COUCH2PG_CHANGES_LIMIT
+    );
+
+    return couch2pgMigrator(POSTGRESQL_URL)().then(importer.importAll);
   };
 
   var itHasTheSameNumberOfDocs = function() {

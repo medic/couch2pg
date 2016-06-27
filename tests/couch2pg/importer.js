@@ -1,7 +1,8 @@
 require('chai').should();
 var sinon = require('sinon'),
     Promise = require('rsvp').Promise,
-    importer = require('../../libs/couch2pg/importer');
+    rewire = require('rewire'),
+    importer = rewire('../../libs/couch2pg/importer');
 
 var STORED_SEQ = {seq: 0};
 var STUB_TO_STORE = {id: '123', seq: 1};
@@ -31,7 +32,8 @@ var shouldFail = function(promise, reason) {
   .then(function() {
     throw Error('Promise successed when it should have failed');
   }).catch(function(err) {
-    console.log(err + ' should be ' + reason);
+    console.log('Error should have been: ' + reason);
+    console.log(err.stack);
 
     err.should.equal(reason);
   });
@@ -50,100 +52,91 @@ describe('IO failure propagation:', function() {
     };
   });
 
-  var importerFailsBecause = function(reason) {
-    return shouldFail(importer(db, couchdb).import(), reason);
-  };
+  describe('of one batch', function() {
+    var importerFailsBecause = function(reason) {
+      return shouldFail(importer(db, couchdb).importBatch(), reason);
+    };
 
-  /* TODO each `it` expands on the previous' successful mocks with a failure that
-          in the next is a success. Work out how to not have to repeat yourself
-          in a clean way
-  */
-  describe('import correctly fails when', function() {
-    it('accessing seq from postgres', function() {
-      sinon.stub(db, 'one').returns(failedPromise('seq'));
+    /* TODO each `it` expands on the previous' successful mocks with a failure that
+            in the next is a success. Work out how to not have to repeat yourself
+            in a clean way
+    */
+    describe('import correctly fails when', function() {
+      it('accessing seq from postgres', function() {
+        sinon.stub(db, 'one').returns(failedPromise('seq'));
 
-      return importerFailsBecause('seq');
-    });
+        return importerFailsBecause('seq');
+      });
 
-    it('accessing changes from couchdb', function() {
-      sinon.stub(db, 'one').returns(successfulPromise(STORED_SEQ));
+      it('accessing changes from couchdb', function() {
+        sinon.stub(db, 'one').returns(successfulPromise(STORED_SEQ));
 
-      sinon.stub(couchdb, 'changes').returns(failedPromise('changes'));
+        sinon.stub(couchdb, 'changes').returns(failedPromise('changes'));
 
-      return importerFailsBecause('changes');
-    });
+        return importerFailsBecause('changes');
+      });
 
-    it('attempting to delete docs', function() {
-      sinon.stub(db, 'one').returns(successfulPromise(STORED_SEQ));
-      sinon.stub(couchdb, 'changes').returns(successfulPromise(CHANGES_FEED));
+      it('attempting to delete docs', function() {
+        sinon.stub(db, 'one').returns(successfulPromise(STORED_SEQ));
+        sinon.stub(couchdb, 'changes').returns(successfulPromise(CHANGES_FEED));
 
-      sinon.stub(db, 'query').returns(failedPromise('delete'));
+        sinon.stub(db, 'query').returns(failedPromise('delete'));
 
-      return importerFailsBecause('delete');
-    });
+        return importerFailsBecause('delete');
+      });
 
-    it('accessing allDocs from couchdb', function() {
-      sinon.stub(db, 'one').returns(successfulPromise(STORED_SEQ));
-      sinon.stub(couchdb, 'changes').returns(successfulPromise(CHANGES_FEED));
-      sinon.stub(db, 'query').returns(successfulPromise());
+      it('accessing allDocs from couchdb', function() {
+        sinon.stub(db, 'one').returns(successfulPromise(STORED_SEQ));
+        sinon.stub(couchdb, 'changes').returns(successfulPromise(CHANGES_FEED));
+        sinon.stub(db, 'query').returns(successfulPromise());
 
-      sinon.stub(couchdb, 'allDocs').returns(failedPromise('allDocs'));
+        sinon.stub(couchdb, 'allDocs').returns(failedPromise('allDocs'));
 
-      return importerFailsBecause('allDocs');
-    });
+        return importerFailsBecause('allDocs');
+      });
 
-    it('trying to delete existing docs before adding them', function() {
-      sinon.stub(db, 'one').returns(successfulPromise(STORED_SEQ));
-      sinon.stub(couchdb, 'changes').returns(successfulPromise(CHANGES_FEED));
-      var dbQuery = sinon.stub(db, 'query');
-      dbQuery.onCall(0).returns(successfulPromise());
-      sinon.stub(couchdb, 'allDocs').returns(successfulPromise(ALL_DOCS));
+      it('trying to delete existing docs before adding them', function() {
+        sinon.stub(db, 'one').returns(successfulPromise(STORED_SEQ));
+        sinon.stub(couchdb, 'changes').returns(successfulPromise(CHANGES_FEED));
+        var dbQuery = sinon.stub(db, 'query');
+        dbQuery.onCall(0).returns(successfulPromise());
+        sinon.stub(couchdb, 'allDocs').returns(successfulPromise(ALL_DOCS));
 
-      dbQuery.onCall(1).returns(failedPromise('Deleting stub to store'));
+        dbQuery.onCall(1).returns(failedPromise('Deleting stub to store'));
 
-      return importerFailsBecause('Deleting stub to store');
-    });
+        return importerFailsBecause('Deleting stub to store');
+      });
 
-    it('adding docs', function() {
-      sinon.stub(db, 'one').returns(successfulPromise(STORED_SEQ));
-      sinon.stub(couchdb, 'changes').returns(successfulPromise(CHANGES_FEED));
-      var dbQuery = sinon.stub(db, 'query');
-      dbQuery.onCall(0).returns(successfulPromise());
-      sinon.stub(couchdb, 'allDocs').returns(successfulPromise(ALL_DOCS));
-      dbQuery.onCall(1).returns(successfulPromise());
+      it('adding docs', function() {
+        sinon.stub(db, 'one').returns(successfulPromise(STORED_SEQ));
+        sinon.stub(couchdb, 'changes').returns(successfulPromise(CHANGES_FEED));
+        var dbQuery = sinon.stub(db, 'query');
+        dbQuery.onCall(0).returns(successfulPromise());
+        sinon.stub(couchdb, 'allDocs').returns(successfulPromise(ALL_DOCS));
+        dbQuery.onCall(1).returns(successfulPromise());
 
-      dbQuery.withArgs(sinon.match(/INSERT INTO couchdb/)).returns(failedPromise('insert docs'));
+        dbQuery.withArgs(sinon.match(/INSERT INTO couchdb/)).returns(failedPromise('insert docs'));
 
-      return importerFailsBecause('insert docs');
-    });
-
-    it('storing seq after a batch', function() {
-      sinon.stub(db, 'one').returns(successfulPromise(STORED_SEQ));
-      sinon.stub(couchdb, 'changes').returns(successfulPromise(CHANGES_FEED));
-      var dbQuery = sinon.stub(db, 'query');
-      dbQuery.onCall(0).returns(successfulPromise());
-      sinon.stub(couchdb, 'allDocs').returns(successfulPromise(ALL_DOCS));
-      dbQuery.onCall(1).returns(successfulPromise());
-      dbQuery.withArgs(sinon.match(/INSERT INTO couchdb/)).returns(successfulPromise());
-
-      dbQuery.withArgs(sinon.match(/UPDATE couchdb_progress/)).returns(failedPromise('update seq'));
-
-      return importerFailsBecause('update seq');
-    });
-
-    it('storing final seq', function() {
-      sinon.stub(db, 'one').returns(successfulPromise(STORED_SEQ));
-      sinon.stub(couchdb, 'changes').returns(successfulPromise(CHANGES_FEED));
-      var dbQuery = sinon.stub(db, 'query');
-      dbQuery.onCall(0).returns(successfulPromise());
-      sinon.stub(couchdb, 'allDocs').returns(successfulPromise(ALL_DOCS));
-      dbQuery.onCall(1).returns(successfulPromise());
-      dbQuery.withArgs(sinon.match(/INSERT INTO couchdb/)).returns(successfulPromise());
-      dbQuery.withArgs(sinon.match(/UPDATE couchdb_progress SET seq = '1'/)).returns(successfulPromise());
-
-      dbQuery.withArgs(sinon.match(/UPDATE couchdb_progress SET seq = '2'/)).returns(failedPromise('update final seq'));
-
-      return importerFailsBecause('update final seq');
+        return importerFailsBecause('insert docs');
+      });
     });
   });
+
+  describe('of import all', function() {
+      var importerFailsBecause = function(reason) {
+        return shouldFail(importer(db, couchdb).importAll(), reason);
+      };
+
+      it('storing seq after a batch', function() {
+        var importChangesBatch = sinon.stub();
+        importChangesBatch.returns(successfulPromise({lastSeq: 2}));
+        importer.__set__('importChangesBatch', importChangesBatch);
+
+        var dbQuery = sinon.stub(db, 'query');
+        dbQuery.withArgs(sinon.match(/UPDATE couchdb_progress/)).returns(failedPromise('update seq'));
+
+        return importerFailsBecause('update seq');
+      });
+  });
+
 });
