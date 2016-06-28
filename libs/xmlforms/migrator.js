@@ -13,7 +13,7 @@ module.exports = function(postgresUrl) {
         connectionString: postgresUrl
       });
 
-      postgrator.migrate('201606201000', function(err, migrations) {
+      postgrator.migrate('201606281159', function(err, migrations) {
         if (err) {
           reject(err);
         } else {

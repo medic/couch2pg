@@ -1,13 +1,14 @@
 var log = require('loglevel');
 
 module.exports = function() {
-  if (process.env.COUCH2PG_DEBUG) {
+  if (process.env.COUCH2PG_DEBUG || true) {
     log.setDefaultLevel('debug');
   } else {
     log.setDefaultLevel('info');
   }
 
   return {
+    legacy: process.env.LEGACY_MODE || false,
     couchdbUrl: process.env.COUCHDB_URL,
     postgresqlUrl: process.env.POSTGRESQL_URL,
     couch2pgDocLimit: process.env.COUCH2PG_DOC_LIMIT || 100,
