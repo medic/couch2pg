@@ -11,7 +11,7 @@ SELECT
 FROM couchdb
 WHERE couchdb.doc->>'type' = 'data_record'
 AND couchdb.doc ? 'form'
-AND couchdb.doc->>'form' is not null;
+AND (couchdb.doc->>'form')::text is not null;
 
 CREATE UNIQUE INDEX form_metadata_uuid ON form_metadata (uuid);
 CREATE INDEX form_metadata_chw ON form_metadata (chw);
