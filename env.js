@@ -8,7 +8,7 @@ module.exports = function() {
   }
 
   return {
-    legacy: process.env.LEGACY_MODE || false,
+    legacyMode: process.env.LEGACY_MODE || false,
     couchdbUrl: process.env.COUCHDB_URL,
     postgresqlUrl: process.env.POSTGRESQL_URL,
     couch2pgDocLimit: process.env.COUCH2PG_DOC_LIMIT || 100,
