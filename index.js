@@ -16,10 +16,10 @@ var couch2pg = require('./libs/couch2pg/importer')(
 var fallback = 0;
 var sleepMs = function(errored) {
   if (errored) {
-    var fallBackMs = fallback * 1000 * 60;
-    if (fallBackMs < env.sleepMs) {
-      fallBackMs++;
-      return fallBackMs;
+    var fallbackMs = fallback * 1000 * 60;
+    if (fallbackMs < env.sleepMs) {
+      fallback++;
+      return fallbackMs;
     } else {
       return env.sleepMs;
     }
@@ -59,14 +59,15 @@ var run = function() {
   .then(function() {
     return xmlforms.update();
   })
-  .catch(function(err) {
-    log.error('XMLForms support failed');
-    log.error(err.stack);
-    return true;
-  })
-  .then(function(errored) {
-    return delayLoop(run, errored);
-  })
+  .then(
+    function() {
+      return delayLoop(run);
+    },
+    function(err) {
+      log.error('XMLForms support failed');
+      log.error(err.stack);
+      return delayLoop(run, true);
+    })
   .then(run);
 };
 
@@ -74,14 +75,14 @@ var legacyRun = function() {
   log.info('Beginning couch2pg run at ' + new Date());
 
   return couch2pg.importAll()
-  .catch(function(err) {
-    log.error('Couch2PG import failed');
-    log.error(err.stack);
-    return true;
-  })
-  .then(function(errored) {
-    return delayLoop(legacyRun, errored);
-  })
+  .then(
+    function() {
+      return delayLoop(legacyRun);
+    },
+    function(err) {
+      log.error('Couch2PG import failed');
+      log.error(err.stack);
+    })
   .then(legacyRun);
 };
 
