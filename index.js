@@ -56,8 +56,10 @@ var run = function() {
     log.error('Couch2PG import failed');
     log.error(err.stack);
   })
-  .then(function() {
-    return xmlforms.update();
+  .then(function(results) {
+    if ((results.deleted.length + results.edited.length) > 0) {
+      return xmlforms.update();
+    }
   })
   .then(
     function() {
