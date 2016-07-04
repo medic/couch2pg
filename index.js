@@ -36,14 +36,14 @@ var migrateXmlforms = function() {
   return xmlformsMigrator(env.postgresqlUrl)();
 };
 
-var delayLoop = function(loopFn, errored) {
+var delayLoop = function(errored) {
   return new Promise(function(resolve) {
     var ms = sleepMs(errored);
     log.info('Run '+(errored ? 'errored' : 'complete') + '. Next run at ' + new Date(new Date().getTime() + ms));
     if (ms === 0) {
       resolve();
     } else {
-      setInterval(resolve, ms);
+      setTimeout(resolve, ms);
     }
   });
 };
@@ -63,12 +63,12 @@ var run = function() {
   })
   .then(
     function() {
-      return delayLoop(run);
+      return delayLoop();
     },
     function(err) {
       log.error('XMLForms support failed');
       log.error(err.stack);
-      return delayLoop(run, true);
+      return delayLoop(true);
     })
   .then(run);
 };
@@ -79,7 +79,7 @@ var legacyRun = function() {
   return couch2pg.importAll()
   .then(
     function() {
-      return delayLoop(legacyRun);
+      return delayLoop();
     },
     function(err) {
       log.error('Couch2PG import failed');
