@@ -13,18 +13,18 @@ var couch2pg = require('./libs/couch2pg/importer')(
       env.couch2pgChangesLimit),
     xmlforms = require('./libs/xmlforms/updater')(db);
 
-var fallback = 0;
+var backoff = 0;
 var sleepMs = function(errored) {
   if (errored) {
-    var fallbackMs = fallback * 1000 * 60;
-    if (fallbackMs < env.sleepMs) {
-      fallback++;
-      return fallbackMs;
+    var backoffMs = backoff * 1000 * 60;
+    if (backoffMs < env.sleepMs) {
+      backoff++;
+      return backoffMs;
     } else {
       return env.sleepMs;
     }
   } else {
-    fallback = 0;
+    backoff = 0;
     return env.sleepMs;
   }
 };
@@ -89,8 +89,8 @@ var legacyRun = function() {
 };
 
 var doRun = function() {
-  if (env.legacyMode) {
-    log.info('Adapter is running in LEGACY(0.4) mode');
+  if (env.v04Mode) {
+    log.info('Adapter is running in 0.4 mode');
 
     return migrateCouch2pg()
     .then(legacyRun);

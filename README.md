@@ -23,7 +23,7 @@ Optional variables:
 * `COUCH2PG_DOC_LIMIT`: number of documents to grab concurrently. Defaults to **100**. Increasing this number will cut down on HTTP GETs and may improve performance, decreasing this number will cut down on node memory usage, and may increase stability.
 * `COUCH2PG_CHANGES_LIMIT`: number of document ids to grab per change limit request. Defaults to **10,000**. Increasing this number will cut down on HTTP GETs and may improve performance, decreasing this number will cut down on node memory usage slightly, and may increase stability.
 * `COUCH2PG_DEBUG`: Whether or not to have verbose logging. Defaults to **true**.
-* `LEGACY_MODE`: skips anything 2.6+ related. Defaults to **false**.
+* `V0_4_MODE`: skips anything 2.6+ related. Defaults to **false**.
 
 ## Required database setup
 
