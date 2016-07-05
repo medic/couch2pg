@@ -32,9 +32,6 @@ var shouldFail = function(promise, reason) {
   .then(function() {
     throw Error('Promise successed when it should have failed');
   }).catch(function(err) {
-    console.log('Error should have been: ' + reason);
-    console.log(err.stack);
-
     err.should.equal(reason);
   });
 };

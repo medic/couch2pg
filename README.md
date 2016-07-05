@@ -20,9 +20,10 @@ are required.
 
 Optional variables:
 
-* `COUCH2PG_DOC_LIMIT`: number of documents to grab concurrently. Defaults to 100. Increasing this number will cut down on HTTP GETs and may improve performance, decreasing this number will cut down on node memory usage, and may increase stability.
-* `COUCH2PG_CHANGES_LIMIT`: number of document ids to grab per change limit request. Defaults to 10,000. Increasing this number will cut down on HTTP GETs and may improve performance, decreasing this number will cut down on node memory usage slightly, and may increase stability.
-* `COUCH2PG_DEBUG`: sets the logging level to DEBUG as opposed to INFO, which will return more information.
+* `COUCH2PG_DOC_LIMIT`: number of documents to grab concurrently. Defaults to **100**. Increasing this number will cut down on HTTP GETs and may improve performance, decreasing this number will cut down on node memory usage, and may increase stability.
+* `COUCH2PG_CHANGES_LIMIT`: number of document ids to grab per change limit request. Defaults to **10,000**. Increasing this number will cut down on HTTP GETs and may improve performance, decreasing this number will cut down on node memory usage slightly, and may increase stability.
+* `COUCH2PG_DEBUG`: Whether or not to have verbose logging. Defaults to **true**.
+* `V0_4_MODE`: skips anything 2.6+ related. Defaults to **false**.
 
 ## Required database setup
 
@@ -34,7 +35,11 @@ You should probably install medic-analytics as a service and leave it to do its 
 
 If you want to run it locally: `node index`
 
-Or more realistically with useful env vars: `POSTGRESQL_URL=postgres://manalytics:manalytics@localhost:5432/medic-analytics-0.1.0 COUCHDB_URL=http://admin:pass@localhost:5984/medic COUCH2PG_SLEEP_MINS=10 COUCH2PG_DOC_LIMIT=1000 COUCH2PG_DEBUG=true node index.js`
+Or more realistically with useful env vars: `POSTGRESQL_URL=postgres://manalytics:manalytics@localhost:5432/medic-analytics-0.1.0 COUCHDB_URL=http://admin:pass@localhost:5984/medic COUCH2PG_SLEEP_MINS=10 COUCH2PG_DOC_LIMIT=1000 node index.js`
+
+## Example Legacy (0.4) usage
+
+The same as normal, except with the legacy flag: `POSTGRESQL_URL=postgres://manalytics:manalytics@localhost:5432/medic-analytics-0.1.0 COUCHDB_URL=http://admin:pass@localhost:5984/medic COUCH2PG_SLEEP_MINS=10 COUCH2PG_DOC_LIMIT=1000 LEGACY_MODE=true node index.js`
 
 ## Running tests
 
