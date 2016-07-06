@@ -33,13 +33,30 @@ We support PostgreSQL 9.4 and greater. The user passed in the postgres url needs
 
 You should probably install medic-analytics as a service and leave it to do its thing, as it should be able to run independently without any user input.
 
+### Installing as a service using Upstart (Ubuntu 14.4)
+
+To setup a really simple service with upstart, all you need is sudo rights on the server. You want to do something like this:
+ - For now, you should still just clone this repo onto your server, check out the relevant tag, and run `npm install`. In the future this will be better!
+ - `sudo` create a `/etc/init/couch2pg-example-client.conf`
+ - As we are going to put passwords in this file, you want to `chown o-r /etc/init/couch2pg-example-client.conf` so that only root can read it
+ - Edit this file and put something like this in it:
+
+```
+description "Service for running Example Client's couch2pg integration"
+author "Your name"
+script
+    export POSTGRESQL_URL="..."
+    export COUCHDB_URL="..."
+    exec nodejs /path/to/the/repo/index
+end script
+```
+ - The service is then a standard service, e.g. `service couch2pg-example-client start`
+
+### Running locally
+
 If you want to run it locally: `node index`
 
 Or more realistically with useful env vars: `POSTGRESQL_URL=postgres://manalytics:manalytics@localhost:5432/medic-analytics-0.1.0 COUCHDB_URL=http://admin:pass@localhost:5984/medic COUCH2PG_SLEEP_MINS=10 COUCH2PG_DOC_LIMIT=1000 node index.js`
-
-## Example Legacy (0.4) usage
-
-The same as normal, except with the legacy flag: `POSTGRESQL_URL=postgres://manalytics:manalytics@localhost:5432/medic-analytics-0.1.0 COUCHDB_URL=http://admin:pass@localhost:5984/medic COUCH2PG_SLEEP_MINS=10 COUCH2PG_DOC_LIMIT=1000 LEGACY_MODE=true node index.js`
 
 ## Running tests
 
