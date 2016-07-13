@@ -86,8 +86,8 @@ var importChangesBatch = function(db, couchdb, concurrentDocLimit, changesLimit)
       var deletesAndModifications = _.partition(changes.results, function(result) {
         return result.deleted;
       });
-      var docsToDelete = deletesAndModifications[0],
-          docsToDownload = deletesAndModifications[1];
+      var docsToDelete   = _.uniq(deletesAndModifications[0], _.property('id')),
+          docsToDownload = _.uniq(deletesAndModifications[1], _.property('id'));
 
       var deletedDocIds = _.pluck(docsToDelete, 'id');
       var editedDocIds = _.pluck(docsToDownload, 'id');
@@ -116,6 +116,9 @@ var changesCount = function(changes) {
 };
 
 module.exports = function(db, couchdb, concurrentDocLimit, changesLimit) {
+  concurrentDocLimit = concurrentDocLimit || 100;
+  changesLimit = changesLimit || 10000;
+
   var importLoop = function(accChanges) {
     log.debug('Performing an import batch of up to ' + changesLimit + ' changes');
 
