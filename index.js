@@ -55,9 +55,12 @@ var run = function() {
   .catch(function(err) {
     log.error('Couch2PG import failed');
     log.error(err.stack);
+
+    return false;
   })
   .then(function(results) {
-    if ((results.deleted.length + results.edited.length) > 0) {
+    // Either couch2pg errored and maybe there is new data, or there is definitely new data
+    if (results === false || (results.deleted.length + results.edited.length) > 0) {
       return xmlforms.update();
     }
   })
