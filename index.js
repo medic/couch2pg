@@ -60,7 +60,7 @@ var run = function() {
   })
   .then(function(results) {
     // Either couch2pg errored and maybe there is new data, or there is definitely new data
-    if (results === false || (results.deleted.length + results.edited.length) > 0) {
+    if (results === false || results.deleted.length || results.edited.length) {
       return xmlforms.update();
     }
   })

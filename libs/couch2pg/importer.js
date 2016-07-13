@@ -4,7 +4,7 @@ var _ = require('underscore'),
     format = require('pg-format');
 
 var deleteDocuments = function(db, docIdsToDelete) {
-  if (docIdsToDelete && docIdsToDelete.length > 0) {
+  if (docIdsToDelete && docIdsToDelete.length) {
     return db.query(
       format('DELETE FROM couchdb WHERE doc->>\'_id\' in (%L)', docIdsToDelete));
   } else {
@@ -21,7 +21,7 @@ Downloads all given documents from couchdb and stores them in Postgres, in batch
 We presume if a document is on this list it has changed, and thus needs updating.
 */
 var loadAndStoreDocs = function(db, couchdb, concurrentDocLimit, docsToDownload) {
-  if (docsToDownload.length > 0) {
+  if (docsToDownload.length) {
     var changeSet = docsToDownload.splice(0, concurrentDocLimit);
 
     return couchdb.allDocs({
@@ -77,7 +77,7 @@ var importChangesBatch = function(db, couchdb, concurrentDocLimit, changesLimit)
     .then(function(changes) {
       log.info('There are ' + changes.results.length + ' changes to process');
 
-      if (changes.results.length === 0) {
+      if (!changes.results.length) {
         return emptyChangesSummary(changes.last_seq);
       }
 
