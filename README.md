@@ -1,4 +1,4 @@
-# medic-analytics ![travis](https://travis-ci.org/medic/medic-analytics.svg?branch=master)
+# medic-couch2pg ![travis](https://travis-ci.org/medic/medic-couch2pg.svg?branch=master)
 
 Software for creating read-only replicas of CouchDB data inside PostgreSQL v9.4
 
