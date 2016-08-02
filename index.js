@@ -51,28 +51,30 @@ var delayLoop = function(errored) {
 var run = function() {
   log.info('Beginning couch2pg and xmlforms run at ' + new Date());
 
+  var runErrored = false;
+
   return couch2pg.importAll()
   .catch(function(err) {
     log.error('Couch2PG import failed');
     log.error(err.stack);
 
-    return false;
+    runErrored = true;
   })
   .then(function(results) {
     // Either couch2pg errored and maybe there is new data, or there is definitely new data
-    if (results === false || results.deleted.length || results.edited.length) {
+    if (runErrored || results.deleted.length || results.edited.length) {
       return xmlforms.update();
     }
   })
-  .then(
-    function() {
-      return delayLoop();
-    },
-    function(err) {
-      log.error('XMLForms support failed');
-      log.error(err.stack);
-      return delayLoop(true);
-    })
+  .catch(function(err) {
+    log.error('XMLForms support failed');
+    log.error(err.stack);
+
+    runErrored = true;
+  })
+  .then(function() {
+    return delayLoop(runErrored);
+  })
   .then(run);
 };
 
