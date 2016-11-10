@@ -60,6 +60,8 @@ Or more realistically with useful env vars: `POSTGRESQL_URL=postgres://manalytic
 
 ## Running tests
 
+Enjoy your tests with: `grunt test`.
+
 Some environment variables that may be required for the integration tests to run correctly:
  * `INT_PG_HOST`: postgres host, defaults to `localhost`
  * `INT_PG_PORT`: postgres port, defaults to `5432` 

@@ -27,13 +27,13 @@ module.exports = function(grunt) {
     }
   });
 
-  grunt.registerTask('tests', 'Run tests.', [
+  grunt.registerTask('test', 'Run tests.', [
     'jshint',
     'mochaTest:unit',
     'mochaTest:integration'
   ]);
 
-  grunt.registerTask('default', 'tests');
+  grunt.registerTask('default', 'test');
 
   grunt.registerTask('noint', 'skip integration tests', [
     'jshint',
