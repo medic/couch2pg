@@ -1,6 +1,9 @@
-var log = require('loglevel'),
-    Promise = require('rsvp').Promise,
-    env = require('./env')(),
+var log = require('loglevel-message-prefix')(require('loglevel'), {
+    prefixes: ['timestamp', 'level']
+});
+
+var Promise = require('rsvp').Promise,
+    env = require('./env')(log),
     couch2pgMigrator = require('./libs/couch2pg/migrator'),
     xmlformsMigrator = require('./libs/xmlforms/migrator');
 
