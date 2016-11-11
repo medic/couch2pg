@@ -2,7 +2,7 @@ require('chai').should();
 var sinon = require('sinon'),
     Promise = require('rsvp').Promise,
     rewire = require('rewire'),
-    importer = rewire('../../libs/couch2pg/importer'),
+    importer = rewire('../../lib/importer'),
     log = require('loglevel');
 
 log.setDefaultLevel('debug'); // CHANGE ME FOR MORE DETAILS

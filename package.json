@@ -1,11 +1,11 @@
 {
-  "name": "medic-couch2pg",
-  "version": "0.1.0",
-  "main": "index.js",
+  "name": "couch2pg",
+  "version": "0.2.0",
+  "bin" : "index.js",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git://github.com/medic/medic-analytics.git"
+    "url": "git://github.com/medic/couch2pg.git"
   },
   "dependencies": {
     "loglevel": "^1.4.1",
@@ -13,7 +13,6 @@
     "pg": "^4.0.0",
     "pg-format": "^1.0.0",
     "pg-promise": "^3.0.0",
-    "pixl-xml": "^1.0.0",
     "postgrator": "^2.8.2",
     "pouchdb": "^5.3.2",
     "rsvp": "^3.0.0",

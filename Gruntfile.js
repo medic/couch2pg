@@ -9,20 +9,20 @@ module.exports = function(grunt) {
         jshintrc: true
       },
       all: [
-        'libs/**/*.js',
-        'tests/**/*.js',
-        'spec/**/*.js'
+        '*.js',
+        'lib/**/*.js',
+        'tests/**/*.js''
       ]
     },
     mochaTest: {
       unit: {
-        src: ['tests/**/*.js']
+        src: ['tests/unit/*.js']
       },
       integration: {
         options: {
           timeout: 300000
         },
-        src: ['spec/**/*.js']
+        src: ['tests/int/*.js']
       }
     }
   });

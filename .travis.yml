@@ -18,15 +18,6 @@ services:
 addons:
    postgresql: "9.4"
 
-before_script:
-   # Used by (so far non-existent) spec tests for xmlforms
-   - psql -c "CREATE DATABASE medicdata WITH OWNER postgres;" -U postgres
-
-script:
-   # Used by (so far non-existent) spec tests for xmlforms
-   - ./bin/replace_couch.sh
-   - grunt ci
-
 notifications:
   webhooks:
     urls:

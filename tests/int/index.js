@@ -16,12 +16,12 @@ var COUCH2PG_CHANGES_LIMIT = 5;
 
 var _ = require('underscore'),
     RSVP = require('rsvp'),
-    common = require('../../tests/common'),
+    common = require('../common'),
     expect = common.expect,
     Promise = RSVP.Promise,
     pgp = require('pg-promise')({ 'promiseLib': Promise }),
     format = require('pg-format'),
-    couch2pgMigrator = require('../../libs/couch2pg/migrator'),
+    couch2pgMigrator = require('../../lib/migrator'),
     pouchdb = require('pouchdb'),
     log = require('loglevel');
 
@@ -118,7 +118,7 @@ describe('couch2pg', function() {
   };
 
   var itRunsSuccessfully = function() {
-    var importer = require('../../libs/couch2pg/importer')(
+    var importer = require('../../lib/importer')(
       pgdb, couchdb,
       COUCH2PG_DOC_LIMIT,
       COUCH2PG_CHANGES_LIMIT

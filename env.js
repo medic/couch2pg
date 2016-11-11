@@ -7,6 +7,8 @@ module.exports = function() {
     log.setDefaultLevel('debug');
   }
 
+  // TODO: most of this garbage will be replaced with passed command line
+  // parameters
   return {
     v04Mode: process.env.V0_4_MODE || false,
     couchdbUrl: process.env.COUCHDB_URL,

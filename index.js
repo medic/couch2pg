@@ -1,20 +1,18 @@
+#!/usr/bin/env node
+
 var log = require('loglevel-message-prefix')(require('loglevel'), {
     prefixes: ['timestamp', 'level']
 });
 
-var Promise = require('rsvp').Promise,
+var rsvp = require('rsvp'),
     env = require('./env')(log),
-    couch2pgMigrator = require('./libs/couch2pg/migrator'),
-    xmlformsMigrator = require('./libs/xmlforms/migrator');
-
-var couchdb = require('pouchdb')(env.couchdbUrl),
-    db = require('pg-promise')({ 'promiseLib': Promise })(env.postgresqlUrl);
-
-var couch2pg = require('./libs/couch2pg/importer')(
+    couchdb = require('pouchdb')(env.couchdbUrl),
+    db = require('pg-promise')({ 'promiseLib': rsvp.Promise })(env.postgresqlUrl),
+    couch2pgMigrator = require('./lib/migrator'),
+    couch2pg = require('./lib/importer')(
       db, couchdb,
       env.couch2pgDocLimit,
-      env.couch2pgChangesLimit),
-    xmlforms = require('./libs/xmlforms/updater')(db);
+      env.couch2pgChangesLimit);
 
 var backoff = 0;
 var sleepMs = function(errored) {
@@ -35,12 +33,9 @@ var sleepMs = function(errored) {
 var migrateCouch2pg = function() {
   return couch2pgMigrator(env.postgresqlUrl)();
 };
-var migrateXmlforms = function() {
-  return xmlformsMigrator(env.postgresqlUrl)();
-};
 
 var delayLoop = function(errored) {
-  return new Promise(function(resolve) {
+  return new rsvp.Promise(function(resolve) {
     var ms = sleepMs(errored);
     log.info('Run '+(errored ? 'errored' : 'complete') + '. Next run at ' + new Date(new Date().getTime() + ms));
     if (ms === 0) {
@@ -51,37 +46,7 @@ var delayLoop = function(errored) {
   });
 };
 
-var run = function() {
-  log.info('Beginning couch2pg and xmlforms run at ' + new Date());
-
-  var runErrored = false;
-
-  return couch2pg.importAll()
-  .catch(function(err) {
-    log.error('Couch2PG import failed');
-    log.error(err.stack);
-
-    runErrored = true;
-  })
-  .then(function(results) {
-    // Either couch2pg errored and maybe there is new data, or there is definitely new data
-    if (runErrored || results.deleted.length || results.edited.length) {
-      return xmlforms.update();
-    }
-  })
-  .catch(function(err) {
-    log.error('XMLForms support failed');
-    log.error(err.stack);
-
-    runErrored = true;
-  })
-  .then(function() {
-    return delayLoop(runErrored);
-  })
-  .then(run);
-};
-
-var legacyRun = function() {
+var doRun = function() {
   log.info('Beginning couch2pg run at ' + new Date());
 
   return couch2pg.importAll()
@@ -92,26 +57,15 @@ var legacyRun = function() {
     function(err) {
       log.error('Couch2PG import failed');
       log.error(err.stack);
+
+      return delayLoop(true);
     })
-  .then(legacyRun);
+  .then(doRun);
 };
 
-var doRun = function() {
-  if (env.v04Mode) {
-    log.info('Adapter is running in 0.4 mode');
-
-    return migrateCouch2pg()
-    .then(legacyRun);
-  } else {
-    log.info('Adapter is running in NORMAL mode');
-
-    return migrateCouch2pg()
-    .then(migrateXmlforms)
-    .then(run);
-  }
-};
-
-doRun().catch(function(err) {
+migrateCouch2pg()
+.then(doRun)
+.catch(function(err) {
   log.error('An unrecoverable error occurred');
   log.error(err.stack);
   log.error('exiting');
