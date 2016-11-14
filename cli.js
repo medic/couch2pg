@@ -1,11 +1,12 @@
-#!/usr/bin/env node
+#! /usr/bin/env node
 
 var log = require('loglevel-message-prefix')(require('loglevel'), {
     prefixes: ['timestamp', 'level']
 });
 
+var env = require('./env')(log);
+
 var rsvp = require('rsvp'),
-    env = require('./env')(log),
     couchdb = require('pouchdb')(env.couchdbUrl),
     db = require('pg-promise')({ 'promiseLib': rsvp.Promise })(env.postgresqlUrl),
     couch2pgMigrator = require('./lib/migrator'),
@@ -49,22 +50,29 @@ var delayLoop = function(errored) {
 var doRun = function() {
   log.info('Beginning couch2pg run at ' + new Date());
 
-  return couch2pg.importAll()
-  .then(
-    function() {
-      return delayLoop();
-    },
-    function(err) {
-      log.error('Couch2PG import failed');
-      log.error(err.stack);
+  if (!env.continuous) {
+    return couch2pg.importAll();
+  } else {
+    return couch2pg.importAll()
+    .then(
+      function() {
+        return delayLoop();
+      },
+      function(err) {
+        log.error('Couch2PG import failed');
+        log.error(err.stack);
 
-      return delayLoop(true);
-    })
-  .then(doRun);
+        return delayLoop(true);
+      })
+    .then(doRun);
+  }
 };
 
 migrateCouch2pg()
 .then(doRun)
+.then(function() {
+  process.exit(0);
+})
 .catch(function(err) {
   log.error('An unrecoverable error occurred');
   log.error(err.stack);

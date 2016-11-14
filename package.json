@@ -1,7 +1,9 @@
 {
   "name": "couch2pg",
-  "version": "0.2.0",
-  "bin" : "cli.js",
+  "version": "0.1.0",
+  "bin": {
+    "couch2pg": "./cli.js"
+  },
   "main": "index.js",
   "license": "Apache-2.0",
   "repository": {
@@ -9,6 +11,7 @@
     "url": "git://github.com/medic/couch2pg.git"
   },
   "dependencies": {
+    "commander": "^2.9.0",
     "loglevel": "^1.4.1",
     "loglevel-message-prefix": "^2.0.1",
     "pg": "^4.0.0",
