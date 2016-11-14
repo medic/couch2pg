@@ -1,4 +1,4 @@
-# couch2pg ![travis](https://travis-ci.org/medic/couch2pg.svg?branch=master)
+# couch2pg [![Build Status](https://travis-ci.org/medic/couch2pg.svg?branch=master)](https://travis-ci.org/medic/couch2pg/branches)
 
 Library and cli for one-way replicating CouchDB databases to PostgreSQL 9.4+.
 
