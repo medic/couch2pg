@@ -3,5 +3,5 @@ var migrator = require('./lib/migrator'),
 
 module.exports = {
   migrator: migrator,
-  importor: importer
+  importer: importer
 };
