@@ -11,7 +11,7 @@ module.exports = function(grunt) {
       all: [
         '*.js',
         'lib/**/*.js',
-        'tests/**/*.js''
+        'tests/**/*.js'
       ]
     },
     mochaTest: {
