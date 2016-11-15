@@ -18,6 +18,9 @@ services:
 addons:
    postgresql: "9.4"
 
+script:
+   - grunt ci
+
 notifications:
   webhooks:
     urls:
