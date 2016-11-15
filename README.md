@@ -24,7 +24,7 @@ var PG_URL = "postgres://localhost:5432/db-name",
     COUCHDB_URL = "http://localhost:5984/db-name";
 
 var couchdb = require('pouchdb')(COUCHDB_URL),
-    db = require('pg-promise')({ 'promiseLib': Promise })(PG_URL);
+    db = require('pg-promise')()(PG_URL);
 
 var couch2pg = require('couch2pg'),
     migrator = couch2pg.migrator(PG_URL),
