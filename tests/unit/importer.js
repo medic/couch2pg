@@ -93,6 +93,7 @@ describe('importer', function() {
       describe('import correctly fails when', function() {
         it('accessing seq from postgres', function() {
           sinon.stub(db, 'one').returns(failedPromise('seq'));
+          sinon.stub(db, 'query').returns(failedPromise('seq'));
 
           return importerFailsBecause('seq');
         });

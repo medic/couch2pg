@@ -13,7 +13,8 @@ var rsvp = require('rsvp'),
     couch2pg = require('./lib/importer')(
       db, couchdb,
       env.couch2pgDocLimit,
-      env.couch2pgChangesLimit);
+      env.couch2pgChangesLimit,
+      env.couchdbUrl);
 
 var backoff = 0;
 var sleepMs = function(errored) {
