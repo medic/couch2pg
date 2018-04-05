@@ -122,7 +122,7 @@ describe('couch2pg', function() {
       pgdb, couchdb,
       COUCH2PG_DOC_LIMIT,
       COUCH2PG_CHANGES_LIMIT,
-      'default-medic'
+      INT_COUCHDB_URL
     );
 
     return couch2pgMigrator(POSTGRESQL_URL)().then(importer.importAll);
