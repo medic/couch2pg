@@ -1,10 +1,18 @@
 #! /usr/bin/env node
-
+var urlParser = require('url');
 var log = require('loglevel-message-prefix')(require('loglevel'), {
     prefixes: ['timestamp', 'level']
 });
 
 var env = require('./env')(log);
+
+// Removes credentials from couchdb url
+// Converts http://admin:pass@localhost:5984/medic
+// to localhost:5984/medic -- seq source
+var parseSource = function(url) {
+  var source = urlParser.parse(url);
+  return source.host+source.path;
+};
 
 var rsvp = require('rsvp'),
     couchdb = require('pouchdb')(env.couchdbUrl),
@@ -14,7 +22,7 @@ var rsvp = require('rsvp'),
       db, couchdb,
       env.couch2pgDocLimit,
       env.couch2pgChangesLimit,
-      env.couchdbUrl);
+      parseSource(env.couchdbUrl));
 
 var backoff = 0;
 var sleepMs = function(errored) {

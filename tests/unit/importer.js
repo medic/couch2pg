@@ -3,6 +3,8 @@ var sinon = require('sinon'),
     Promise = require('rsvp').Promise,
     rewire = require('rewire'),
     importer = rewire('../../lib/importer'),
+    common = require('../common'),
+    expect = common.expect,
     log = require('loglevel');
 
 log.setDefaultLevel('debug'); // CHANGE ME FOR MORE DETAILS
@@ -169,5 +171,47 @@ describe('importer', function() {
         });
     });
 
+    describe('different scenarios for get sequence', function() {
+      it('finds sequence for given source', function() {
+        sinon.stub(db, 'one').returns(successfulPromise(STORED_SEQ));
+
+        return importer(db, couchdb).getSeq('localhost:5984/simon')
+          .then(function(seq) {
+            expect(seq).to.equal(STORED_SEQ.seq);
+          });
+      });
+
+      it('does not find sequence for given source but finds default source seq', function() {
+        var seqStub = sinon.stub(db, 'one');
+        seqStub.onCall(0).returns(failedPromise('seq for this source does not exist'));
+        // default database sequence
+        seqStub.onCall(1).returns(successfulPromise(STORED_SEQ));
+        var updateDefaultSeq = sinon.stub(db, 'query').returns(successfulPromise({}));
+
+        return importer(db, couchdb).getSeq('localhost:5984/simon')
+          .then(function(seq) {
+            expect(seq).to.equal(STORED_SEQ.seq);
+            expect(updateDefaultSeq.callCount).to.equal(1);
+            var stmt = 'UPDATE couchdb_progress SET source = \'localhost:5984/simon\' WHERE source = \'default-source\'';
+            expect(updateDefaultSeq.args[0][0]).to.equal(stmt);
+          });
+      });
+
+      it('does not find sequence for given nor default source', function() {
+        var seqStub = sinon.stub(db, 'one');
+        seqStub.onCall(0).returns(failedPromise('seq for this source does not exist'));
+        seqStub.onCall(1).returns(failedPromise('default source sequence does not exist'));
+
+        var insertSeq = sinon.stub(db, 'query').returns(successfulPromise({}));
+
+        return importer(db, couchdb).getSeq('localhost:5984/simon')
+          .then(function(seq) {
+            expect(seq).to.equal(0);
+            expect(insertSeq.callCount).to.equal(1);
+            var stmt = 'INSERT INTO couchdb_progress(seq, source) VALUES (\'0\', \'localhost:5984/simon\')';
+            expect(insertSeq.args[0][0]).to.equal(stmt);
+          });
+      });
+    });
   });
 });
