@@ -1,3 +1,4 @@
+require('es6-promise').polyfill();
 require('chai').should();
 var sinon = require('sinon'),
     rewire = require('rewire'),
