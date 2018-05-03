@@ -221,10 +221,19 @@ describe('couch2pg', function() {
     it('still has the same documents as couch', itHasTheSameDocuments);
   });
   describe('Escaping', function() {
-    it('should handle documents with \\u0000 in it', function() {
+    it('should handle documents with \u0000 in it', function() {
       return couchdb.put({
         _id: 'u0000-escaped',
-        data: 'blah blah \u0000\u0000\u0000\u0000 blah'
+        data: 'blah blah \u00003\u00003\u00003\u00003 blah'
+      }).then(itRunsSuccessfully).catch(function(err) {
+        console.log(err);
+        throw new Error(err);
+      });
+    });
+    it('or with sneakier variants', function() {
+      return couchdb.put({
+        _id: 'u0000-even-more-escaped',
+        data: 'blah blah \u00003\\u00003\\\u00003\\\\u00003 blah blah'
       }).then(itRunsSuccessfully).catch(function(err) {
         console.log(err);
         throw new Error(err);
