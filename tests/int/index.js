@@ -242,8 +242,28 @@ describe('couch2pg', function() {
 
     it('should handle documents with \u0000 in their IDs', function() {
       return couchdb.put({
-        _id: '\u0000MyID\u0000not-escaped',
+        _id: '54collect_off\u00004form:collect_off\u0000\u0000',
         data: 'just some data'
+      }).then(itRunsSuccessfully).catch(function(err) {
+        console.log(err);
+        throw new Error(err);
+      });
+    });
+
+    it('should handle documents with \u0000 in their IDs, or sneakier times 2', function() {
+      return couchdb.put({
+        _id: '54collect_off\\\u00004form:collect_off\\\\u0000\\\\u0000',
+        data: 'just some data'
+      }).then(itRunsSuccessfully).catch(function(err) {
+        console.log(err);
+        throw new Error(err);
+      });
+    });
+
+    it('should handle documents with \u0000 in their and their data', function() {
+      return couchdb.put({
+        _id: '54contact:person:create\u00004form:contact:person:create\u0000\u0000-info',
+        data: '\u00004form:contact:person:create\u0000fndjskf'
       }).then(itRunsSuccessfully).catch(function(err) {
         console.log(err);
         throw new Error(err);
