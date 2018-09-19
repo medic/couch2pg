@@ -239,5 +239,15 @@ describe('couch2pg', function() {
         throw new Error(err);
       });
     });
+
+    it('should handle documents with \u0000 in their IDs', function() {
+      return couchdb.put({
+        _id: '\u0000MyID\u0000not-escaped',
+        data: 'just some data'
+      }).then(itRunsSuccessfully).catch(function(err) {
+        console.log(err);
+        throw new Error(err);
+      });
+    });
   });
 });
