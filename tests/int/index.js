@@ -270,20 +270,28 @@ describe('couch2pg', function() {
       });
     });
 
-    it('should handle a doc update', function() {
-      var doc = {
+    it('should handle doc updates / deletes', function() {
+      var docs = [ {
         _id: '54contact:person:create\u00004form:contact:person:create',
         data: '\u00004form:contact:person:create\u0000fndjskf'
-      };
+      }, {
+        _id: '54contact:person:create\\\\u00004form:contact:person:create-bis',
+        data: '\u00004form:contact:person:create\u0000fndjskf'
+      }, {
+        _id: '54contact:person:create\\\\u00004form:contact:person:create-bis-bis',
+        data: '\u00004form:contact:person:create\u0000fndjskf'
+      }];
       return couchdb
-        .put(doc)
+        .bulkDocs(docs)
         .then(function(result) {
-          doc._rev = result.rev;
+          result.forEach(function(result, key) {
+            docs[key]._rev = result.rev;
+          });
           return itRunsSuccessfully();
         })
         .then(function() {
-          doc.data += 'updated';
-          return couchdb.put(doc);
+          docs[2]._deleted = true;
+          return couchdb.bulkDocs(docs);
         })
         .then(itRunsSuccessfully)
         .catch(function(err) {
