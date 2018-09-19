@@ -252,7 +252,7 @@ describe('couch2pg', function() {
 
     it('should handle documents with \u0000 in their IDs, or sneakier times 2', function() {
       return couchdb.put({
-        _id: '54collect_off\\\u00004form:collect_off\\\\u0000\\\\u0000',
+        _id: '54collect_off\\\u00004form:collect_off\\\\u0000\\\\u0000no-duplicates-pls',
         data: 'just some data'
       }).then(itRunsSuccessfully).catch(function(err) {
         console.log(err);
