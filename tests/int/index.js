@@ -271,14 +271,14 @@ describe('couch2pg', function() {
     });
 
     it('should handle a doc update', function() {
-      var doc;
+      var doc = {
+        _id: '54contact:person:create\u00004form:contact:person:create',
+        data: '\u00004form:contact:person:create\u0000fndjskf'
+      };
       return couchdb
-        .put({
-          _id: '54contact:person:create\u00004form:contact:person:create',
-          data: '\u00004form:contact:person:create\u0000fndjskf'
-        })
+        .put(doc)
         .then(function(result) {
-          doc = result;
+          doc._rev = result.rev;
           return itRunsSuccessfully();
         })
         .then(function() {
@@ -290,7 +290,6 @@ describe('couch2pg', function() {
           console.log(err);
           throw new Error(err);
         });
-
     });
   });
 });
