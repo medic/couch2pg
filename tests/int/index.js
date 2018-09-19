@@ -269,5 +269,28 @@ describe('couch2pg', function() {
         throw new Error(err);
       });
     });
+
+    it('should handle a doc update', function() {
+      var doc;
+      return couchdb
+        .put({
+          _id: '54contact:person:create\u00004form:contact:person:create',
+          data: '\u00004form:contact:person:create\u0000fndjskf'
+        })
+        .then(function(result) {
+          doc = result;
+          return itRunsSuccessfully();
+        })
+        .then(function() {
+          doc.data += 'updated';
+          return couchdb.put(doc);
+        })
+        .then(itRunsSuccessfully)
+        .catch(function(err) {
+          console.log(err);
+          throw new Error(err);
+        });
+
+    });
   });
 });
