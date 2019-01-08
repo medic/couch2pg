@@ -4,6 +4,9 @@
   "bin": {
     "couch2pg": "./cli.js"
   },
+  "scripts": {
+    "test": "grunt test"
+  },
   "main": "index.js",
   "license": "Apache-2.0",
   "repository": {
