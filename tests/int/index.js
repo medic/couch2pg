@@ -239,5 +239,13 @@ describe('couch2pg', function() {
         throw new Error(err);
       });
     });
+    it('or even a direct production example #medic-projects/4706', function() {
+      return couchdb.put({
+        _id: '54collect_off\u00004form:collect_off\u0000\u0000'
+      }).then(itRunsSuccessfully).catch(function(err) {
+        console.log(err);
+        throw new Error(err);
+      });
+    });
   });
 });
