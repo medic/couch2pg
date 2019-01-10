@@ -221,7 +221,7 @@ describe('couch2pg', function() {
     it('still has the same documents as couch', itHasTheSameDocuments);
   });
   describe('Escaping', function() {
-    it('should handle documents with \u0000 in it', function() {
+    it('should handle documents with \\u0000 in it', function() {
       return couchdb.put({
         _id: 'u0000-escaped',
         data: 'blah blah \u00003\u00003\u00003\u00003 blah'
@@ -230,16 +230,46 @@ describe('couch2pg', function() {
         throw new Error(err);
       });
     });
-    it('or with sneakier variants', function() {
+    it('including variants that would exist *after* you remove a single \u0000', function() {
       return couchdb.put({
         _id: 'u0000-even-more-escaped',
-        data: 'blah blah \u00003\\u00003\\\u00003\\\\u00003 blah blah'
+        data: 'blah blah \\u0000u0000 blah blah'
       }).then(itRunsSuccessfully).catch(function(err) {
         console.log(err);
         throw new Error(err);
       });
     });
-    it('or even a direct production example #medic-projects/4706', function() {
+    // This is not as technically correct as it could be, but it's simpler! It removes the possibility
+    // of slashes that aren't removed changing the thing they are escaping (see the it directly above
+    // this for one example).
+    it('removes all backslashes for simplicity', function() {
+      return couchdb.put({
+        _id: 'remove-all-backslashes',
+        data: 'blah blah \\\\\\\\u0000" blah blah'
+      }).then(itRunsSuccessfully).catch(function(err) {
+        console.log(err);
+        throw new Error(err);
+      });
+    });
+    it('Escapes ids correctly as well', function() {
+      return couchdb.put({
+        _id: 'this is a \u0000 bad id'
+      }).then(itRunsSuccessfully).catch(function(err) {
+        console.log(err);
+        throw new Error(err);
+      });
+    });
+    it('Escapes actual 1-byte 0x00 values', function() {
+      var badValue = 'foo' + 0x00 + 'bar';
+      return couchdb.put({
+        _id: badValue,
+        data: badValue
+      }).then(itRunsSuccessfully).catch(function(err) {
+        console.log(err);
+        throw new Error(err);
+      });
+    });
+    it('Specific production bug #medic-projects/4706', function() {
       return couchdb.put({
         _id: '54collect_off\u00004form:collect_off\u0000\u0000'
       }).then(itRunsSuccessfully).catch(function(err) {
