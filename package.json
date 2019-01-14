@@ -1,6 +1,6 @@
 {
   "name": "couch2pg",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "bin": {
     "couch2pg": "./cli.js"
   },
@@ -21,7 +21,7 @@
     "pg-format": "^1.0.0",
     "pg-promise": "^3.0.0",
     "postgrator": "^2.8.2",
-    "pouchdb": "^5.3.2",
+    "pouchdb": "^7.0.0",
     "rsvp": "^3.0.0",
     "underscore": "^1.8.3"
   },
@@ -29,13 +29,13 @@
     "chai": "^3.0.0",
     "chai-as-promised": "^5.0.0",
     "es6-promise": "4.2.4",
-    "grunt": "^0.4.0",
+    "grunt": "^1.0.3",
     "grunt-cli": "^1.0.0",
     "grunt-contrib-jshint": "^1.0.0",
     "grunt-mocha-test": "^0.12.0",
-    "mocha": "^2.0.0",
-    "nock": "^7.0.0",
-    "request": "^2.0.0",
+    "mocha": "^5.2.0",
+    "nock": "^10.0.6",
+    "request": "^2.88.0",
     "rewire": "^2.5.1",
     "sinon": "2.1.0"
   }
