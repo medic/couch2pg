@@ -1,3 +1,15 @@
+var _ = require('underscore'),
+    common = require('../common'),
+    expect = common.expect,
+    format = require('pg-format'),
+    log = require('loglevel'),
+    pouchdb = require('pouchdb'),
+    spawn = require('child_process').spawn;
+
+var RSVP = require('rsvp'),
+    Promise = RSVP.Promise,
+    pgp = require('pg-promise')({ 'promiseLib': Promise });
+
 var INT_PG_HOST = process.env.INT_PG_HOST || 'localhost',
     INT_PG_PORT = process.env.INT_PG_PORT || 5432,
     INT_PG_USER = process.env.INT_PG_USER,
@@ -11,21 +23,7 @@ var POSTGRESQL_URL = 'postgres://' +
   (INT_PG_USER ? '@' : '') +
   INT_PG_HOST + ':' + INT_PG_PORT + '/' + INT_PG_DB;
 
-var COUCH2PG_DOC_LIMIT = 2;
-var COUCH2PG_CHANGES_LIMIT = 5;
-
-var _ = require('underscore'),
-    RSVP = require('rsvp'),
-    common = require('../common'),
-    expect = common.expect,
-    Promise = RSVP.Promise,
-    pgp = require('pg-promise')({ 'promiseLib': Promise }),
-    format = require('pg-format'),
-    couch2pgMigrator = require('../../lib/migrator'),
-    pouchdb = require('pouchdb'),
-    log = require('loglevel');
-
-log.setDefaultLevel('error'); // CHANGE ME FOR MORE DETAILS
+log.setDefaultLevel('error'); // CHANGE ME TO debug FOR MORE DETAILS
 
 var DOCS_TO_CREATE = 10;
 var DOCS_TO_ADD = 5;
@@ -49,6 +47,7 @@ var createPgConnection = function(host, port, user, pass, database) {
 
   return pgp(options);
 };
+var pgdb;
 
 // drop and re-create couchdb
 var initialiseCouchDb = function() {
@@ -61,16 +60,24 @@ var initialiseCouchDb = function() {
 
 // Drop and re-create postgres db
 var initialisePostgresql = function() {
-  var pg = createPgConnection(INT_PG_HOST, INT_PG_PORT, INT_PG_USER, INT_PG_PASS);
-  return pg.query(format('DROP DATABASE %I', INT_PG_DB))
-    .then(function() {}, function() {}) // don't care if it passed or failed
+  pgdb = createPgConnection(INT_PG_HOST, INT_PG_PORT, INT_PG_USER, INT_PG_PASS);
+  return pgdb.query(format('DROP DATABASE IF EXISTS %I', INT_PG_DB))
     .then(function() {
-      return pg.query(format('CREATE DATABASE %I', INT_PG_DB)).then(function() {
-        return new Promise(function(res) {
-          res(createPgConnection(INT_PG_HOST, INT_PG_PORT, INT_PG_USER, INT_PG_PASS, INT_PG_DB));
-        });
-      });
+      return pgdb.query(format('CREATE DATABASE %I', INT_PG_DB));
+    }).then(function() {
+      pgdb = createPgConnection(INT_PG_HOST, INT_PG_PORT, INT_PG_USER, INT_PG_PASS, INT_PG_DB);
     });
+};
+
+var resetPostgres = function() {
+  if (pgdb) {
+    return pgdb.query('drop schema public cascade')
+      .then(function() {
+        return pgdb.query('create schema public');
+      });
+  } else {
+    return initialisePostgresql().then(resetPostgres);
+  }
 };
 
 var randomData = function() {
@@ -88,7 +95,7 @@ var generateRandomDocument = function() {
 };
 
 describe('couch2pg', function() {
-  var couchdb, pgdb;
+  var couchdb;
 
   var createDocs = function(docs) {
     return couchdb.bulkDocs(docs).then(function(results) {
@@ -118,13 +125,28 @@ describe('couch2pg', function() {
   };
 
   var itRunsSuccessfully = function() {
-    var importer = require('../../lib/importer')(
-      pgdb, couchdb,
-      COUCH2PG_DOC_LIMIT,
-      COUCH2PG_CHANGES_LIMIT
-    );
+    return new Promise(function(res, rej) {
+      var run = spawn('node', [ 'cli.js', INT_COUCHDB_URL, POSTGRESQL_URL]);
 
-    return couch2pgMigrator(POSTGRESQL_URL)().then(importer.importAll);
+      var logIt = function(targetFn) {
+        return function(data) {
+          data = data.toString();
+          data = data.substring(0, data.length - 1);
+          targetFn(data);
+        };
+      };
+
+      run.stdout.on('data', logIt(log.debug));
+      run.stderr.on('data', logIt(log.error));
+
+      run.on('close', function(code) {
+        if (code) {
+          rej(new Error('couch2pg cli exited with code', code));
+        } else {
+          res();
+        }
+      });
+    });
   };
 
   var itHasTheSameNumberOfDocs = function() {
@@ -139,29 +161,47 @@ describe('couch2pg', function() {
     });
   };
 
-  var itHasTheSameDocuments = function() {
+  // It's OK to not pass _rev values in existingDocs, but if you do pass them
+  // we will compare them
+  var itHasExactlyTheseDocuments = function(existingDocs) {
     return RSVP.all([
       pgdb.query('SELECT * from couchdb'),
-      couchDbDocs()
+      existingDocs
     ]).then(function(results) {
       var pgdocs = _.pluck(results[0], 'doc');
       var docs = results[1];
 
-      expect(_.sortBy(pgdocs, '_id')).deep.equals(_.sortBy(docs, '_id'));
+      expect(pgdocs.length).to.equal(docs.length);
+
+      pgdocs = _.sortBy(pgdocs, '_id');
+      docs = _.sortBy(docs, '_id');
+
+      for (var i = 0; i < pgdocs.length; i++) {
+        if (!docs[i]._rev) {
+          delete pgdocs[i]._rev;
+        }
+
+        expect(pgdocs[i]).deep.equals(docs[i]);
+      }
     });
   };
 
-  before(function() {
+  var itHasTheSameDocuments = function() {
+    return itHasExactlyTheseDocuments(couchDbDocs());
+  };
+
+  var resetDbState = function() {
     return initialiseCouchDb()
       .then(function(db) {
-        console.log('Initialised couchdb');
+        log.info('CouchDB ready');
         couchdb = db;
-        return initialisePostgresql();
-      }).then(function(db) {
-        console.log('Initialised postgres');
-        pgdb = db;
+        return resetPostgres();
+      }).then(function() {
+        log.info('PostgreSQL ready');
       });
-  });
+  };
+
+  before(resetDbState);
 
   describe('initial import into postgres', function() {
     before(function() {
@@ -220,23 +260,85 @@ describe('couch2pg', function() {
     it('still has the same documents as couch', itHasTheSameDocuments);
   });
   describe('Escaping', function() {
-    it('should handle documents with \u0000 in it', function() {
+    beforeEach(resetDbState);
+
+    it('should handle documents with \\u0000 in it', function() {
       return couchdb.put({
         _id: 'u0000-escaped',
         data: 'blah blah \u00003\u00003\u00003\u00003 blah'
-      }).then(itRunsSuccessfully).catch(function(err) {
-        console.log(err);
-        throw new Error(err);
-      });
+      })
+        .then(itRunsSuccessfully)
+        .then(function() {
+          return itHasExactlyTheseDocuments([{
+            _id: 'u0000-escaped',
+            data: 'blah blah 3333 blah'
+          }]);
+        });
     });
-    it('or with sneakier variants', function() {
+    it('including variants that would exist *after* you remove a single \u0000', function() {
       return couchdb.put({
         _id: 'u0000-even-more-escaped',
-        data: 'blah blah \u00003\\u00003\\\u00003\\\\u00003 blah blah'
-      }).then(itRunsSuccessfully).catch(function(err) {
-        console.log(err);
-        throw new Error(err);
-      });
+        data: 'blah blah \\u0000u0000 blah blah'
+      })
+        .then(itRunsSuccessfully)
+        .then(function() {
+          return itHasExactlyTheseDocuments([{
+            _id: 'u0000-even-more-escaped',
+            data: 'blah blah u0000 blah blah'
+          }]);
+        });
+    });
+    // This is not as technically correct as it could be, but it's simpler! It removes the possibility
+    // of slashes that aren't removed changing the thing they are escaping (see the it directly above
+    // this for one example).
+    it('removes all backslashes for simplicity', function() {
+      return couchdb.put({
+        _id: 'remove-all-backslashes',
+        data: 'blah blah \\\\\\\\u0000" blah blah'
+      })
+        .then(itRunsSuccessfully)
+        .then(function() {
+          return itHasExactlyTheseDocuments([{
+            _id: 'remove-all-backslashes',
+            data: 'blah blah " blah blah'
+          }]);
+        });
+    });
+    it('Escapes ids correctly as well', function() {
+      return couchdb.put({
+        _id: 'this is a \u0000 bad id'
+      })
+        .then(itRunsSuccessfully)
+        .then(function() {
+          return itHasExactlyTheseDocuments([{
+            _id: 'this is a  bad id',
+          }]);
+        });
+    });
+    it('Escapes actual 1-byte 0x00 values', function() {
+      var badValue = 'foo\0bar';
+      return couchdb.put({
+        _id: badValue,
+        data: badValue
+      })
+        .then(itRunsSuccessfully)
+        .then(function() {
+          return itHasExactlyTheseDocuments([{
+            _id: 'foobar',
+            data: 'foobar'
+          }]);
+        });
+    });
+    it('Specific production bug #medic-projects/4706', function() {
+      return couchdb.put({
+        _id: '54collect_off\u00004form:collect_off\u0000\u0000'
+      })
+        .then(itRunsSuccessfully)
+        .then(function() {
+          return itHasExactlyTheseDocuments([{
+            _id: '54collect_off4form:collect_off',
+          }]);
+        });
     });
   });
 });

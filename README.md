@@ -20,8 +20,8 @@ npm install --save couch2pg
 ```
 
 ```js
-var PG_URL = "postgres://localhost:5432/db-name",
-    COUCHDB_URL = "http://localhost:5984/db-name";
+var PG_URL = 'postgres://localhost:5432/db-name',
+    COUCHDB_URL = 'http://localhost:5984/db-name';
 
 var couchdb = require('pouchdb')(COUCHDB_URL),
     db = require('pg-promise')()(PG_URL);
