@@ -2,6 +2,8 @@ language: node_js
 
 node_js:
    - "6"
+   - "8"
+   - "10"
 
 env:
   global:
@@ -17,7 +19,7 @@ addons:
    postgresql: "9.4"
 
 script:
-   - grunt ci
+   - npm test
 
 notifications:
   slack:

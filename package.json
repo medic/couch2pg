@@ -5,7 +5,10 @@
     "couch2pg": "./cli.js"
   },
   "scripts": {
-    "test": "grunt test"
+    "test": "npm run lint && npm run unit-test && npm run int-test",
+    "lint": "eslint *.js lib tests",
+    "unit-test": "mocha tests/unit",
+    "int-test": "mocha tests/int"
   },
   "main": "index.js",
   "license": "Apache-2.0",
@@ -29,10 +32,7 @@
     "chai": "^3.0.0",
     "chai-as-promised": "^5.0.0",
     "es6-promise": "4.2.4",
-    "grunt": "^1.0.3",
-    "grunt-cli": "^1.0.0",
-    "grunt-contrib-jshint": "^1.0.0",
-    "grunt-mocha-test": "^0.12.0",
+    "eslint": "^5.13.0",
     "mocha": "^5.2.0",
     "nock": "^10.0.6",
     "request": "^2.88.0",

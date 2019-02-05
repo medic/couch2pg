@@ -341,4 +341,4 @@ describe('couch2pg', function() {
         });
     });
   });
-});
+}).timeout(300000);
