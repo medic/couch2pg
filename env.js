@@ -17,12 +17,12 @@ module.exports = function() {
     });
 
   program.on('--help', function() {
-    console.log('  <source> should be a valid CouchDB URL');
-    console.log('  <target> should be a valid PostgreSQL URL');
-    console.log('');
-    console.log('  Examples:');
-    console.log('');
-    console.log('    $ couch2pg "http://admin:pass@localhost:5984/db" "postgres://user:pass@localhost:5432/db"');
+    log.info('  <source> should be a valid CouchDB URL');
+    log.info('  <target> should be a valid PostgreSQL URL');
+    log.info('');
+    log.info('  Examples:');
+    log.info('');
+    log.info('    $ couch2pg "http://admin:pass@localhost:5984/db" "postgres://user:pass@localhost:5432/db"');
   });
 
   program.parse(process.argv);
