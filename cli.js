@@ -15,7 +15,7 @@ var parseSource = function(url) {
 };
 
 var rsvp = require('rsvp'),
-    couchdb = require('pouchdb')(env.couchdbUrl),
+    couchdb = require('./db')(env.couchdbUrl),
     db = require('pg-promise')({ 'promiseLib': rsvp.Promise })(env.postgresqlUrl),
     couch2pgMigrator = require('./lib/migrator'),
     couch2pg = require('./lib/importer')(
