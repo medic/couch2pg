@@ -3,7 +3,7 @@ var _ = require('underscore'),
     expect = common.expect,
     format = require('pg-format'),
     log = require('loglevel'),
-    pouchdb = require('pouchdb'),
+    pouchdb = require('../../db'),
     spawn = require('child_process').spawn;
 
 var RSVP = require('rsvp'),
