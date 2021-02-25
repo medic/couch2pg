@@ -19,10 +19,13 @@ var rsvp = require('rsvp'),
     db = require('pg-promise')({ 'promiseLib': rsvp.Promise })(env.postgresqlUrl),
     couch2pgMigrator = require('./lib/migrator'),
     couch2pg = require('./lib/importer')(
-      db, couchdb,
+      db,
+      couchdb,
       env.couch2pgDocLimit,
       env.couch2pgChangesLimit,
-      parseSource(env.couchdbUrl));
+      parseSource(env.couchdbUrl),
+      env.postgresTable
+    );
 
 var backoff = 0;
 var sleepMs = function(errored) {
