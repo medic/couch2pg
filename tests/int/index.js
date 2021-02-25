@@ -91,9 +91,9 @@ describe('couch2pg', function() {
     });
   };
 
-  var itRunsSuccessfully = function() {
+  var itRunsSuccessfully = (postgresTable='couchdb') => {
     return new Promise(function(res, rej) {
-      var run = spawn('node', [ 'cli.js', INT_COUCHDB_URL, POSTGRESQL_URL]);
+      var run = spawn('node', [ 'cli.js', INT_COUCHDB_URL, POSTGRESQL_URL], postgresTable);
 
       var logIt = function(targetFn) {
         return function(data) {
@@ -116,9 +116,9 @@ describe('couch2pg', function() {
     });
   };
 
-  var itHasTheSameNumberOfDocs = function() {
+  var itHasTheSameNumberOfDocs = (table='couchdb') => {
     return RSVP.all([
-      pgdb.one('SELECT COUNT(*) FROM couchdb'),
+      pgdb.one(`SELECT COUNT(*) FROM ${table}`),
       couchDbDocs()
     ]).then(function(results) {
       var pgCount = parseInt(results[0].count),
@@ -130,9 +130,9 @@ describe('couch2pg', function() {
 
   // It's OK to not pass _rev values in existingDocs, but if you do pass them
   // we will compare them
-  var itHasExactlyTheseDocuments = function(existingDocs) {
+  var itHasExactlyTheseDocuments = function(existingDocs, table='couchdb') {
     return RSVP.all([
-      pgdb.query('SELECT * from couchdb'),
+      pgdb.query(`SELECT * from ${table}`),
       existingDocs
     ]).then(function(results) {
       var pgdocs = _.pluck(results[0], 'doc');
@@ -153,8 +153,8 @@ describe('couch2pg', function() {
     });
   };
 
-  var itHasTheSameDocuments = function() {
-    return itHasExactlyTheseDocuments(couchDbDocs());
+  var itHasTheSameDocuments = (table='couchdb') => {
+    return itHasExactlyTheseDocuments(couchDbDocs(), table);
   };
 
   var resetDbState = function() {
@@ -306,6 +306,13 @@ describe('couch2pg', function() {
             _id: '54collect_off4form:collect_off',
           }]);
         });
+    });
+  });
+  describe('replicates to the correct table', () => {
+    it('replicates to the table passed in with options', () => {
+      it('runs successfully', itRunsSuccessfully('test_table'));
+      it('has the same number of documents as couch', itHasTheSameNumberOfDocs('test_table'));
+      it('has the same documents as couch', itHasTheSameDocuments('test_table'));
     });
   });
 }).timeout(300000);
