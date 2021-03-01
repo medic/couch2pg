@@ -103,6 +103,10 @@ describe('couch2pg', function() {
         };
       };
 
+      run.on('error', function(err) {
+        rej(new Error('Child process errored attempting to transform xml', err));
+      });
+
       run.stdout.on('data', logIt(log.debug));
       run.stderr.on('data', logIt(log.error));
 
@@ -221,11 +225,21 @@ describe('couch2pg', function() {
     it('has the same number of documents as couch', itHasTheSameNumberOfDocs);
     it('has the same documents as couch', itHasTheSameDocuments);
   });
+
   describe('no change', function() {
     it('runs successfully', itRunsSuccessfully);
     it('still has the same number of documents as couch', itHasTheSameNumberOfDocs);
     it('still has the same documents as couch', itHasTheSameDocuments);
   });
+
+  describe('replicates to the correct table', () => {
+    it('replicates to the table passed in with options', () => {
+      it('runs successfully', itRunsSuccessfully('test_table'));
+      it('has the same number of documents as couch', itHasTheSameNumberOfDocs('test_table'));
+      it('has the same documents as couch', itHasTheSameDocuments('test_table'));
+    });
+  });
+
   describe('Escaping', function() {
     beforeEach(resetDbState);
 
@@ -308,12 +322,4 @@ describe('couch2pg', function() {
         });
     });
   });
-
-  describe('replicates to the correct table', () => {
-    it('replicates to the table passed in with options', () => {
-      it('runs successfully', itRunsSuccessfully('test_table'));
-      it('has the same number of documents as couch', itHasTheSameNumberOfDocs('test_table'));
-      it('has the same documents as couch', itHasTheSameDocuments('test_table'));
-    });
-  });
-}).timeout(300000);
+}).timeout(100000);
