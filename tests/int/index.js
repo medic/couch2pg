@@ -93,7 +93,7 @@ describe('couch2pg', function() {
 
   var itRunsSuccessfully = (postgresTable='couchdb') => {
     return new Promise(function(res, rej) {
-      var run = spawn('node', [ 'cli.js', INT_COUCHDB_URL, POSTGRESQL_URL], postgresTable);
+      var run = spawn('node', [ 'cli.js', INT_COUCHDB_URL, POSTGRESQL_URL, postgresTable]);
 
       var logIt = function(targetFn) {
         return function(data) {
@@ -308,6 +308,7 @@ describe('couch2pg', function() {
         });
     });
   });
+
   describe('replicates to the correct table', () => {
     it('replicates to the table passed in with options', () => {
       it('runs successfully', itRunsSuccessfully('test_table'));
