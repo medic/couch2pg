@@ -9,6 +9,7 @@ module.exports = function() {
     .arguments('<source> <target>')
     .option('--doc-limit [value]', 'number of docs to batch')
     .option('--changes-limit [value]', 'number of changes to batch')
+    .option('--postgres-table [value]', 'name of the postgres table to replicate to')
     .option('-d, --daemon', 'continually replicate between CouchDB and PostgresSQL')
     .option('-v, --verbose', 'verbose logging')
     .action(function(source, target) {
@@ -43,6 +44,7 @@ module.exports = function() {
     couch2pgDocLimit: program['doc-limit'],
     couch2pgChangesLimit: program['changes-limit'],
     continuous: program.daemon,
-    sleepMs: 10 * 60 * 60 * 1000
+    sleepMs: 10 * 60 * 60 * 1000,
+    postgresTable: program['postgres-table'] || 'couchdb'
   };
 };
