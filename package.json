@@ -24,8 +24,8 @@
     "pg-format": "^1.0.0",
     "pg-promise": "^3.0.0",
     "postgrator": "^2.8.2",
-    "pouchdb-core": "^7.0.0",
-    "pouchdb-adapter-http": "^7.0.0",
+    "pouchdb-core": "7.0.0",
+    "pouchdb-adapter-http": "7.0.0",
     "rsvp": "^3.0.0",
     "underscore": "^1.8.3"
   },
