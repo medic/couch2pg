@@ -243,49 +243,49 @@ describe('couch2pg', function() {
   describe('Escaping', function() {
     beforeEach(resetDbState);
 
-    // it('should handle documents with \\u0000 in it', function() {
-    //   return couchdb.put({
-    //     _id: 'u0000-escaped',
-    //     data: 'blah blah \u00003\u00003\u00003\u00003 blah'
-    //   })
-    //     .then(itRunsSuccessfully)
-    //     .then(function() {
-    //       return itHasExactlyTheseDocuments([{
-    //         _id: 'u0000-escaped',
-    //         data: 'blah blah 3333 blah'
-    //       }]);
-    //     });
-    // });
-    // it('including variants that would exist *after* you remove a single \u0000', function() {
-    //   return couchdb.put({
-    //     _id: 'u0000-even-more-escaped',
-    //     data: 'blah blah \\u0000u0000 blah blah'
-    //   })
-    //     .then(itRunsSuccessfully)
-    //     .then(function() {
-    //       return itHasExactlyTheseDocuments([{
-    //         _id: 'u0000-even-more-escaped',
-    //         data: 'blah blah u0000 blah blah'
-    //       }]);
-    //     });
-    // });
-    // // This is not as technically correct as it could be, but it's simpler! It removes the possibility
-    // // of slashes that aren't removed changing the thing they are escaping (see the it directly above
-    // // this for one example).
-    // it('removes all backslashes for simplicity', function() {
-    //   return couchdb.put({
-    //     _id: 'remove-all-backslashes',
-    //     data: 'blah blah \\\\\\\\u0000" blah blah'
-    //   })
-    //     .then(itRunsSuccessfully)
-    //     .then(function() {
-    //       return itHasExactlyTheseDocuments([{
-    //         _id: 'remove-all-backslashes',
-    //         data: 'blah blah " blah blah'
-    //       }]);
-    //     });
-    // });
-    it('Escapes ids correctly as well', function() {
+    it('should handle documents with \\u0000 in it', function() {
+      return couchdb.put({
+        _id: 'u0000-escaped',
+        data: 'blah blah \u00003\u00003\u00003\u00003 blah'
+      })
+        .then(itRunsSuccessfully)
+        .then(function() {
+          return itHasExactlyTheseDocuments([{
+            _id: 'u0000-escaped',
+            data: 'blah blah 3333 blah'
+          }]);
+        });
+    });
+    it('including variants that would exist *after* you remove a single \u0000', function() {
+      return couchdb.put({
+        _id: 'u0000-even-more-escaped',
+        data: 'blah blah \\u0000u0000 blah blah'
+      })
+        .then(itRunsSuccessfully)
+        .then(function() {
+          return itHasExactlyTheseDocuments([{
+            _id: 'u0000-even-more-escaped',
+            data: 'blah blah u0000 blah blah'
+          }]);
+        });
+    });
+    // This is not as technically correct as it could be, but it's simpler! It removes the possibility
+    // of slashes that aren't removed changing the thing they are escaping (see the it directly above
+    // this for one example).
+    it('removes all backslashes for simplicity', function() {
+      return couchdb.put({
+        _id: 'remove-all-backslashes',
+        data: 'blah blah \\\\\\\\u0000" blah blah'
+      })
+        .then(itRunsSuccessfully)
+        .then(function() {
+          return itHasExactlyTheseDocuments([{
+            _id: 'remove-all-backslashes',
+            data: 'blah blah " blah blah'
+          }]);
+        });
+    });
+    it.only('Escapes ids correctly as well', function() {
       return couchdb.put({
         _id: 'this is a \u0000 bad id'
       })
