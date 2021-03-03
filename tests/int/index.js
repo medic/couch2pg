@@ -285,7 +285,7 @@ describe('couch2pg', function() {
           }]);
         });
     });
-    it.only('Escapes ids correctly as well', function() {
+    it('Escapes ids correctly as well', function() {
       return couchdb.put({
         _id: 'this is a \u0000 bad id'
       })
