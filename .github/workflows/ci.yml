@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-18.04
     env:
       INT_COUCHDB_URL: http://localhost:5984/medic-analytics-test
+      INT_PG_PASS: postgres
       INT_PG_USER: postgres
 
     services:
@@ -20,6 +21,7 @@ jobs:
         ports:
           - 5432:5432
         env:
+          POSTGRES_PASSWORD: postgres
           POSTGRES_USER: postgres
         # Set health checks to wait until postgres has started
         options: >-
