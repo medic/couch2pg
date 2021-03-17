@@ -10,6 +10,8 @@ jobs:
   build-and-test:
     name: Build couch2pg
     runs-on: ubuntu-18.04
+    env:
+      INT_COUCHDB_URL: http://localhost:5984/medic-analytics-test
 
     services:
       postgres:
