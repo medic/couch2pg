@@ -33,5 +33,9 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
+    - name: Set up CouchDB
+      uses: "cobot/couchdb-action@master"
+      with:
+        couchdb version: '2.3.1'
     - run: npm ci
     - run: npm test
