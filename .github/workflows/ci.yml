@@ -1,0 +1,37 @@
+# Notes:
+#  - All software installed below is pinned so they don't get upgraded and break w/o us knowing why.
+#  - If you bump one version up to latest, please bump them all so we stay current!
+
+name: Build couch2pg and run test cases
+
+on: [push, pull_request]
+
+jobs:
+  build-and-test:
+    name: Build couch2pg
+    runs-on: ubuntu-18.04
+
+    services:
+      postgres:
+        image: postgres:9.4
+        env:
+          POSTGRES_PASSWORD: postgres
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    strategy:
+      matrix:
+        node-version: [8.x, 10.x, 12.x]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - run: npm ci
+    - run: npm test
