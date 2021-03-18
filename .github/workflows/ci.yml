@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-18.04
     env:
       INT_COUCHDB_URL: http://localhost:5984/medic-analytics-test
-      INT_PG_PASS: postgres
+      INT_PG_PASS: postgrespass
       INT_PG_USER: postgres
 
     services:
@@ -21,7 +21,7 @@ jobs:
         ports:
           - 5432:5432
         env:
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_PASSWORD: postgrespass
           POSTGRES_USER: postgres
         # Set health checks to wait until postgres has started
         options: >-
@@ -40,10 +40,6 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - name: Set environment variables
-      run: |
-        echo "INT_PG_PASS=postgres" >> $GITHUB_ENV
-        echo "INT_PG_USER=postgres" >> $GITHUB_ENV
     - name: Set up CouchDB
       uses: "cobot/couchdb-action@master"
       with:
