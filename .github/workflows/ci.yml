@@ -40,6 +40,10 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
+    - name: Set environment variables
+      run: |
+        echo "INT_PG_PASS=postgres" >> $GITHUB_ENV
+        echo "INT_PG_USER=postgres" >> $GITHUB_ENV
     - name: Set up CouchDB
       uses: "cobot/couchdb-action@master"
       with:
