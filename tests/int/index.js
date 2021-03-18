@@ -45,6 +45,8 @@ var createPgConnection = function(host, port, user, pass, database) {
     options.database = database;
   }
 
+  console.log('pg opts');
+  console.log(options);
   return pgp(options);
 };
 var pgdb;
