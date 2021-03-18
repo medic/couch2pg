@@ -19,7 +19,7 @@ var INT_PG_HOST = process.env.INT_PG_HOST || 'localhost',
 
 var POSTGRESQL_URL = 'postgres://' +
   (INT_PG_USER ? INT_PG_USER : '') +
-  (INT_PG_PASS ? INT_PG_PASS : '') +
+  (INT_PG_PASS ? INT_PG_PASS += ':' + INT_PG_PASS : '') +
   (INT_PG_USER ? '@' : '') +
   INT_PG_HOST + ':' + INT_PG_PORT + '/' + INT_PG_DB;
 
@@ -44,10 +44,7 @@ var createPgConnection = function(host, port, user, pass, database) {
   if (database) {
     options.database = database;
   }
-
-  console.log('pg opts');
-  console.log(options);
-  console.log(POSTGRESQL_URL);
+  console.log(POSTGRESQL_URL)
   return pgp(POSTGRESQL_URL);
 };
 var pgdb;
