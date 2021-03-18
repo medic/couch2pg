@@ -47,7 +47,8 @@ var createPgConnection = function(host, port, user, pass, database) {
 
   console.log('pg opts');
   console.log(options);
-  return pgp(options);
+  console.log(POSTGRESQL_URL);
+  return pgp(POSTGRESQL_URL);
 };
 var pgdb;
 
