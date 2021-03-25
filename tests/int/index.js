@@ -1,7 +1,6 @@
 var _ = require('underscore'),
     common = require('../common'),
     expect = common.expect,
-    format = require('pg-format'),
     log = require('loglevel'),
     pouchdb = require('../../db'),
     spawn = require('child_process').spawn;
@@ -17,7 +16,11 @@ var INT_PG_HOST = process.env.INT_PG_HOST || 'localhost',
     INT_PG_DB   = process.env.INT_PG_DB || 'medic-analytics-test',
     INT_COUCHDB_URL = process.env.INT_COUCHDB_URL || 'http://admin:pass@localhost:5984/medic-analytics-test';
 
-var POSTGRESQL_URL = `postgres://${INT_PG_USER}:${INT_PG_PASS}@${INT_PG_HOST}:${INT_PG_PORT}/${INT_PG_DB}`;
+var POSTGRESQL_URL = 'postgres://' +
+  (INT_PG_USER ? INT_PG_USER : '') +
+  (INT_PG_PASS ? INT_PG_PASS += ':' + INT_PG_PASS : '') +
+  (INT_PG_USER ? '@' : '') +
+  INT_PG_HOST + ':' + INT_PG_PORT + '/' + INT_PG_DB;
 
 log.setDefaultLevel('error'); // CHANGE ME TO debug FOR MORE DETAILS
 
