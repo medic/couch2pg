@@ -17,12 +17,6 @@ var INT_PG_HOST = process.env.INT_PG_HOST || 'localhost',
     INT_PG_DB   = process.env.INT_PG_DB || 'medic-analytics-test',
     INT_COUCHDB_URL = process.env.INT_COUCHDB_URL || 'http://admin:pass@localhost:5984/medic-analytics-test';
 
-// var POSTGRESQL_URL = 'postgres://' +
-//   (INT_PG_USER ? INT_PG_USER : '') +
-//   (INT_PG_PASS ? INT_PG_PASS += ':' + INT_PG_PASS : '') +
-//   (INT_PG_USER ? '@' : '') +
-//   INT_PG_HOST + ':' + INT_PG_PORT + '/' + INT_PG_DB;
-
 var POSTGRESQL_URL = `postgres://${INT_PG_USER}:${INT_PG_PASS}@${INT_PG_HOST}:${INT_PG_PORT}/${INT_PG_DB}`;
 
 log.setDefaultLevel('error'); // CHANGE ME TO debug FOR MORE DETAILS
@@ -32,25 +26,7 @@ var DOCS_TO_ADD = 5;
 var DOCS_TO_EDIT = 5;
 var DOCS_TO_DELETE = 5;
 
-var createPgConnection = function(host, port, user, pass, database) {
-  var options = {
-    host: host,
-    port: port
-  };
-  if (user) {
-    options.user = user;
-  }
-  if (pass) {
-    options.pass = pass;
-  }
-  if (database) {
-    options.database = database;
-  }
-  console.log(POSTGRESQL_URL);
-  
-  return pgp(POSTGRESQL_URL);
-};
-var pgdb;
+var pgdb = pgp(POSTGRESQL_URL);
 
 // drop and re-create couchdb
 var initialiseCouchDb = function() {
@@ -61,27 +37,11 @@ var initialiseCouchDb = function() {
   });
 };
 
-// Drop and re-create postgres db
-var initialisePostgresql = function() {
-  pgdb = createPgConnection(INT_PG_HOST, INT_PG_PORT, INT_PG_USER, INT_PG_PASS);
-  return Promise.resolve();
-  // return pgdb.query(format('DROP DATABASE IF EXISTS %I', INT_PG_DB))
-  //   .then(function() {
-  //     return pgdb.query(format('CREATE DATABASE %I', INT_PG_DB));
-  //   }).then(function() {
-  //     pgdb = createPgConnection(INT_PG_HOST, INT_PG_PORT, INT_PG_USER, INT_PG_PASS, INT_PG_DB);
-  //   });
-};
-
 var resetPostgres = function() {
-  if (pgdb) {
-    return pgdb.query('drop schema public cascade')
-      .then(function() {
-        return pgdb.query('create schema public');
-      });
-  } else {
-    return initialisePostgresql().then(resetPostgres);
-  }
+  return pgdb.query('drop schema public cascade')
+    .then(function() {
+      return pgdb.query('create schema public');
+    });
 };
 
 var randomData = function() {

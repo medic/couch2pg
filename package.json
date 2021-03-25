@@ -5,7 +5,7 @@
     "couch2pg": "./cli.js"
   },
   "scripts": {
-    "test": "npm run int-test",
+    "test": "npm run lint && npm run unit-test && npm run int-test",
     "lint": "eslint *.js lib tests",
     "unit-test": "mocha tests/unit",
     "int-test": "mocha tests/int"

@@ -14,6 +14,7 @@ jobs:
       INT_COUCHDB_URL: http://localhost:5984/medic-analytics-test
       INT_PG_PASS: postgrespass
       INT_PG_USER: postgresuser
+      INT_PG_DB: medic-analytics-test
 
     services:
       postgres:
@@ -21,9 +22,9 @@ jobs:
         ports:
           - 5432:5432
         env:
-          POSTGRES_PASSWORD: postgrespass
-          POSTGRES_USER: postgresuser
-          POSTGRES_DB: medic-analytics-test
+          POSTGRES_PASSWORD: ${{ env.INT_PG_PASS }}
+          POSTGRES_USER: ${{ env.INT_PG_USER }}
+          POSTGRES_DB: ${{ env.INT_PG_DB }}
         # Set health checks to wait until postgres has started
         options: >-
           --health-cmd pg_isready
