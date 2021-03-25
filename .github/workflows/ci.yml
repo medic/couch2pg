@@ -13,7 +13,7 @@ jobs:
     env:
       INT_COUCHDB_URL: http://localhost:5984/medic-analytics-test
       INT_PG_PASS: postgrespass
-      INT_PG_USER: postgres
+      INT_PG_USER: postgresuser
 
     services:
       postgres:
@@ -22,7 +22,7 @@ jobs:
           - 5432:5432
         env:
           POSTGRES_PASSWORD: postgrespass
-          POSTGRES_USER: postgres
+          POSTGRES_USER: postgresuser
           POSTGRES_DB: medic-analytics-test
         # Set health checks to wait until postgres has started
         options: >-
