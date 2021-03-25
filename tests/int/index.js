@@ -64,12 +64,13 @@ var initialiseCouchDb = function() {
 // Drop and re-create postgres db
 var initialisePostgresql = function() {
   pgdb = createPgConnection(INT_PG_HOST, INT_PG_PORT, INT_PG_USER, INT_PG_PASS);
-  return pgdb.query(format('DROP DATABASE IF EXISTS %I', INT_PG_DB))
-    .then(function() {
-      return pgdb.query(format('CREATE DATABASE %I', INT_PG_DB));
-    }).then(function() {
-      pgdb = createPgConnection(INT_PG_HOST, INT_PG_PORT, INT_PG_USER, INT_PG_PASS, INT_PG_DB);
-    });
+  return Promise.resolve();
+  // return pgdb.query(format('DROP DATABASE IF EXISTS %I', INT_PG_DB))
+  //   .then(function() {
+  //     return pgdb.query(format('CREATE DATABASE %I', INT_PG_DB));
+  //   }).then(function() {
+  //     pgdb = createPgConnection(INT_PG_HOST, INT_PG_PORT, INT_PG_USER, INT_PG_PASS, INT_PG_DB);
+  //   });
 };
 
 var resetPostgres = function() {
