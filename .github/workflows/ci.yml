@@ -1,0 +1,50 @@
+# Notes:
+#  - All software installed below is pinned so they don't get upgraded and break w/o us knowing why.
+#  - If you bump one version up to latest, please bump them all so we stay current!
+
+name: Build couch2pg and run test cases
+
+on: [push, pull_request]
+
+jobs:
+  build-and-test:
+    name: Build couch2pg
+    runs-on: ubuntu-18.04
+    env:
+      INT_COUCHDB_URL: http://localhost:5984/medic-analytics-test
+      INT_PG_PASS: postgrespass
+      INT_PG_USER: postgresuser
+      INT_PG_DB: medic-analytics-test
+
+    services:
+      postgres:
+        image: postgres:9.4
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_PASSWORD: ${{ env.INT_PG_PASS }}
+          POSTGRES_USER: ${{ env.INT_PG_USER }}
+          POSTGRES_DB: ${{ env.INT_PG_DB }}
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    strategy:
+      matrix:
+        node-version: [8.x, 10.x, 12.x]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: Set up CouchDB
+      uses: "cobot/couchdb-action@11e2c9f532a0eee2516ff80d92990d8081f2792c"
+      with:
+        couchdb version: '2.3.1'
+    - run: npm ci
+    - run: npm test

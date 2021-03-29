@@ -1,7 +1,6 @@
 var _ = require('underscore'),
     common = require('../common'),
     expect = common.expect,
-    format = require('pg-format'),
     log = require('loglevel'),
     pouchdb = require('../../db'),
     spawn = require('child_process').spawn;
@@ -19,7 +18,7 @@ var INT_PG_HOST = process.env.INT_PG_HOST || 'localhost',
 
 var POSTGRESQL_URL = 'postgres://' +
   (INT_PG_USER ? INT_PG_USER : '') +
-  (INT_PG_PASS ? INT_PG_PASS += ':' + INT_PG_PASS : '') +
+  (INT_PG_PASS ? ':' + INT_PG_PASS : '') +
   (INT_PG_USER ? '@' : '') +
   INT_PG_HOST + ':' + INT_PG_PORT + '/' + INT_PG_DB;
 
@@ -30,24 +29,7 @@ var DOCS_TO_ADD = 5;
 var DOCS_TO_EDIT = 5;
 var DOCS_TO_DELETE = 5;
 
-var createPgConnection = function(host, port, user, pass, database) {
-  var options = {
-    host: host,
-    port: port
-  };
-  if (user) {
-    options.user = user;
-  }
-  if (pass) {
-    options.pass = pass;
-  }
-  if (database) {
-    options.database = database;
-  }
-
-  return pgp(options);
-};
-var pgdb;
+var pgdb = pgp(POSTGRESQL_URL);
 
 // drop and re-create couchdb
 var initialiseCouchDb = function() {
@@ -58,26 +40,11 @@ var initialiseCouchDb = function() {
   });
 };
 
-// Drop and re-create postgres db
-var initialisePostgresql = function() {
-  pgdb = createPgConnection(INT_PG_HOST, INT_PG_PORT, INT_PG_USER, INT_PG_PASS);
-  return pgdb.query(format('DROP DATABASE IF EXISTS %I', INT_PG_DB))
-    .then(function() {
-      return pgdb.query(format('CREATE DATABASE %I', INT_PG_DB));
-    }).then(function() {
-      pgdb = createPgConnection(INT_PG_HOST, INT_PG_PORT, INT_PG_USER, INT_PG_PASS, INT_PG_DB);
-    });
-};
-
 var resetPostgres = function() {
-  if (pgdb) {
-    return pgdb.query('drop schema public cascade')
-      .then(function() {
-        return pgdb.query('create schema public');
-      });
-  } else {
-    return initialisePostgresql().then(resetPostgres);
-  }
+  return pgdb.query('drop schema public cascade')
+    .then(function() {
+      return pgdb.query('create schema public');
+    });
 };
 
 var randomData = function() {
