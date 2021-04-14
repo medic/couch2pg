@@ -38,7 +38,7 @@ return migrator()
 
 ## Running tests
 
-Enjoy your tests with: `grunt test`.
+Enjoy your tests with: `npm test`.
 
 Some environment variables that may be required for the integration tests to run correctly:
  * `INT_PG_HOST`: postgres host, defaults to `localhost`
