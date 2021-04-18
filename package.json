@@ -1,6 +1,6 @@
 {
   "name": "couch2pg",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "bin": {
     "couch2pg": "./cli.js"
   },
