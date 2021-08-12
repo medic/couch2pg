@@ -11,7 +11,7 @@ module.exports = function() {
     .option('--changes-limit [value]', 'number of changes to batch')
     .option('--postgres-table [value]', 'name of the postgres table to replicate to')
     .option('-d, --daemon', 'continually replicate between CouchDB and PostgresSQL')
-    .option('-s, --sleep', 'Sleep interval in milliseconds between runs in daemon mode (default 10 * 60 * 60 * 1000 [ms])')
+    .option('-s, --sleep', 'Sleep interval in milliseconds between runs in daemon mode (default 10 * 60 * 60 * 1000 [ms] = 10 hrs)')
     .option('-v, --verbose', 'verbose logging')
     .action(function(source, target) {
       couchdbUrl = source;
