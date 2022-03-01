@@ -2,7 +2,17 @@
 
 Library and cli for one-way replicating CouchDB databases to PostgreSQL 9.4+.
 
-## Required database setup
+## Requirements
+
+### Node and npm
+
+You will need to install the following:
+
+- [Node.js](https://nodejs.org) 8.11.x up to  12.x.x. Must be an LTS release. LTS is designated with an even major version number.
+- [npm](https://npmjs.com/) 6.x.x above
+
+
+### Database setup
 
 couch2pg supports PostgreSQL 9.4 and greater. The user passed in the postgres url needs to have full creation rights on the given database.
 
