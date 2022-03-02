@@ -1,6 +1,6 @@
 {
   "name": "couch2pg",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "bin": {
     "couch2pg": "./cli.js"
   },
@@ -20,9 +20,9 @@
     "commander": "^2.9.0",
     "loglevel": "^1.4.1",
     "loglevel-message-prefix": "^2.0.1",
-    "pg": "^4.0.0",
+    "pg": "^8.0.0",
     "pg-format": "^1.0.0",
-    "pg-promise": "^3.0.0",
+    "pg-promise": "^10.0.0",
     "postgrator": "^2.8.2",
     "pouchdb-core": "^7.0.0",
     "pouchdb-adapter-http": "^7.0.0",
