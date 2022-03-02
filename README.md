@@ -46,7 +46,7 @@ Some environment variables that may be required for the integration tests to run
 * `INT_PG_PORT`: postgres port, defaults to `5432`
 * `INT_PG_USER`: postgres user, defaults to none (system default). This user must be able to create databases on the given host.
 * `INT_PG_PASS`: user's password, defaults to none (system default)
-* `INT_PG_DB`: test databse to use, defaults to `medic-analytics-test`
+* `INT_PG_DB`: test database to use, defaults to `medic-analytics-test`
 * `INT_COUCHDB_URL`: url to test couchdb, defaults to `http://admin:pass@localhost:5984/medic-analytics-test`. The user must have the ability to destory and create databases on that host.
 
 You may be able to get away with not setting any of these, or only needing to set some of these depending on your development environment.
