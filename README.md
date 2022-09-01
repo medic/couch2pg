@@ -19,7 +19,7 @@ couch2pg supports PostgreSQL 9.4 and greater. The user passed in the postgres ur
 ## Example cli usage
 
 ```
-npm install -g couch2pg`
+npm install -g couch2pg
 couch2pg --help
 ```
 
