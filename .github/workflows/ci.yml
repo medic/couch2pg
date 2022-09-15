@@ -9,7 +9,7 @@ on: [push, pull_request]
 jobs:
   build-and-test:
     name: Build couch2pg
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     env:
       INT_COUCHDB_URL: http://localhost:5984/medic-analytics-test
       INT_PG_PASS: postgrespass
