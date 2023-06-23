@@ -93,15 +93,15 @@ describe('importer', function() {
           id: userDocId,
           doc: {
             _id: userDocId,
-            _rev: "3-37b63ea82ca461bfa6b3d4cfda7dbf88",
-            name: "test_user",
-            type: "user",
-            roles: ["chw"],
-            facility_id: "c0ca5e2b-508a-4ba7-b934-f6e4751223bf",
-            password_scheme: "pbkdf2",
+            _rev: '3-37b63ea82ca461bfa6b3d4cfda7dbf88',
+            name: 'test_user',
+            type: 'user',
+            roles: ['chw'],
+            facility_id: 'c0ca5e2b-508a-4ba7-b934-f6e4751223bf',
+            password_scheme: 'pbkdf2',
             iterations: 10,
-            derived_key: "5ccbfab2b06a67450c3fbcda9fc0f4e27e5ba957",
-            salt: "713733ce185df96773d6bd4a860749ee"
+            derived_key: '5ccbfab2b06a67450c3fbcda9fc0f4e27e5ba957',
+            salt: '713733ce185df96773d6bd4a860749ee'
           }
         }],
       });
