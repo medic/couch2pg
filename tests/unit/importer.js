@@ -71,6 +71,50 @@ describe('importer', function() {
         allDocs.args[0][0].keys.should.deep.equal(['123']);
       });
     });
+
+    it('removes security information from user docs', function () {
+      const userDocId = 'org.couchdb.user:test_user';
+      sinon.stub(db, 'one').resolves(STORED_SEQ);
+      sinon.stub(couchdb, 'changes')
+        .onCall(0).resolves({
+          results: [
+            { id: userDocId, seq: 1 },
+          ],
+          last_seq: 2
+        })
+        .onCall(1).resolves({
+          results: [],
+          last_seq: 2
+        });
+      const query = sinon.stub(db, 'query').resolves();
+      const allDocs = sinon.stub(couchdb, 'allDocs');
+      allDocs.resolves({
+        rows: [{
+          id: userDocId,
+          doc: {
+            _id: userDocId,
+            _rev: '3-37b63ea82ca461bfa6b3d4cfda7dbf88',
+            name: 'test_user',
+            type: 'user',
+            roles: ['chw'],
+            facility_id: 'c0ca5e2b-508a-4ba7-b934-f6e4751223bf',
+            password_scheme: 'pbkdf2',
+            iterations: 10,
+            derived_key: '5ccbfab2b06a67450c3fbcda9fc0f4e27e5ba957',
+            salt: '713733ce185df96773d6bd4a860749ee'
+          }
+        }],
+      });
+
+      return importer(db, couchdb).importBatch().then(function() {
+        allDocs.args[0][0].keys.should.deep.equal([userDocId]);
+        query.args[1][0].should.include(`INSERT INTO couchdb (doc) VALUES ('{"_id":"${userDocId}"`);
+        query.args[1][0].should.include(`"roles":["chw"],`);
+        query.args[1][0].should.not.include('derived_key');
+        query.args[1][0].should.not.include('salt');
+        query.args[1][0].should.not.include('password_scheme');
+      });
+    })
   });
 
   describe('IO failure propagation:', function() {
