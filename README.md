@@ -1,6 +1,6 @@
 # couch2pg
 
-> **_NOTE:_** ℹ️ `couch2pg` is deprecated. Look into [CHT Sync](https://github.com/medic/cht-sync) instead.
+> **_NOTE:_** `couch2pg` is deprecated. Look into [CHT Sync](https://github.com/medic/cht-sync) instead.
 
 Library and cli for one-way replicating CouchDB databases to PostgreSQL 9.4+.
 
